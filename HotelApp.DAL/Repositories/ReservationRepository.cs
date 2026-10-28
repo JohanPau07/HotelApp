@@ -1,4 +1,5 @@
 ﻿using HotelApp.DAL.Data;
+using HotelApp.DAL.Interfaces;
 using HotelApp.DAL.Models;
 using HotelApp.DAL.Models.Objects.Reservation;
 using HotelApp.DAL.Models.Result;
