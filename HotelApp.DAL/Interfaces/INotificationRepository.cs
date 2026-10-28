@@ -2,7 +2,7 @@
 using HotelApp.DAL.Models.Objects.Notification;
 using HotelApp.DAL.Models.Result;
 
-namespace HotelApp.DAL.Repositories;
+namespace HotelApp.DAL.Interfaces;
 
 public interface INotificationRepository : IBaseRepository<Notification>
 {
