@@ -1,4 +1,5 @@
 ﻿using HotelApp.DAL.Data;
+using HotelApp.DAL.Interfaces;
 using HotelApp.DAL.Models.Result;
 using Microsoft.EntityFrameworkCore;
 
