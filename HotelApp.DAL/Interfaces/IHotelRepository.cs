@@ -2,7 +2,7 @@
 using HotelApp.DAL.Models.Objects.Hotel;
 using HotelApp.DAL.Models.Result;
 
-namespace HotelApp.DAL.Repositories;
+namespace HotelApp.DAL.Interfaces;
 
 public interface IHotelRepository : IBaseRepository<Hotel>
 {
