@@ -2,7 +2,7 @@
 using HotelApp.DAL.Models.Objects.Guest;
 using HotelApp.DAL.Models.Result;
 
-namespace HotelApp.DAL.Repositories;
+namespace HotelApp.DAL.Interfaces;
 
 public interface IGuestRepository : IBaseRepository<Guest>
 {
