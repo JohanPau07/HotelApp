@@ -1,7 +1,5 @@
 using HotelApp.BL.Dependencies;
-using HotelApp.BL.Dependencies;
 
-using HotelApp.BL.Dependencies;
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
