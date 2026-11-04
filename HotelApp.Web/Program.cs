@@ -6,6 +6,7 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddControllersWithViews();
 builder.Services.AddRoomDependency();
 builder.Services.AddHotelDependency();
+builder.Services.AddFloorDependency();
 
 var app = builder.Build();
 
