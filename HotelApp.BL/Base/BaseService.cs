@@ -7,6 +7,8 @@ namespace HotelApp.BL.Base;
 
 public abstract class BaseService<TEntity, TSaveDto, TUpdateDto>
     : IBaseService<TSaveDto, TUpdateDto> where TEntity : class
+public abstract class BaseService<TEntity, TSaveDto, TUpdateDto> : IBaseService<TSaveDto, TUpdateDto>
+    where TEntity : class
 {
     protected readonly IBaseRepository<TEntity> _repository;
 
@@ -22,3 +24,4 @@ public abstract class BaseService<TEntity, TSaveDto, TUpdateDto>
 
     public abstract Task<OperationResult> UpdateAsync(TUpdateDto dto);
 }
+
