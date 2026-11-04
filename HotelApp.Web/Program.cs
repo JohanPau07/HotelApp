@@ -1,4 +1,5 @@
 using HotelApp.BL.Dependencies;
+using HotelApp.BL.Dependencies;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -8,6 +9,7 @@ builder.Services.AddRoomDependency();
 builder.Services.AddHotelDependency();
 builder.Services.AddFloorDependency();
 builder.Services.AddGuestDependency();
+builder.Services.AddNotificationDependency();
 
 var app = builder.Build();
 
