@@ -26,6 +26,7 @@ public class FloorService : BaseService<Floor, SaveFloorDto, UpdateFloorDto>, IF
         return _floorRepository.AddAsync(new FloorAdd
         {
             HotelId = dto.HotelId,
+            BlockId = dto.BlockId,
             Number = dto.Number,
             IsActive = dto.IsActive
         });
@@ -40,6 +41,7 @@ public class FloorService : BaseService<Floor, SaveFloorDto, UpdateFloorDto>, IF
         {
             Id = dto.Id,
             HotelId = dto.HotelId,
+            BlockId = dto.BlockId,
             Number = dto.Number,
             IsActive = dto.IsActive
         });

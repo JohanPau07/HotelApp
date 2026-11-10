@@ -10,6 +10,7 @@ builder.Services.AddFloorDependency();
 builder.Services.AddGuestDependency();
 builder.Services.AddNotificationDependency();
 builder.Services.AddReservationDependency();
+builder.Services.AddBlockDependency();
 
 var app = builder.Build();
 
