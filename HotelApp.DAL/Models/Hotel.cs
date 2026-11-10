@@ -14,4 +14,6 @@ public partial class Hotel
     public bool IsActive { get; set; }
 
     public virtual ICollection<Floor> Floors { get; set; } = new List<Floor>();
+
+    public virtual ICollection<Block> Blocks { get; set; } = new List<Block>();
 }

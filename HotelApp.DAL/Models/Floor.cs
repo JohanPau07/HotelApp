@@ -13,7 +13,11 @@ public partial class Floor
 
     public bool IsActive { get; set; }
 
+    public Guid? BlockId { get; set; }
+
     public virtual Hotel Hotel { get; set; } = null!;
+
+    public virtual Block? Block { get; set; }
 
     public virtual ICollection<Room> Rooms { get; set; } = new List<Room>();
 }

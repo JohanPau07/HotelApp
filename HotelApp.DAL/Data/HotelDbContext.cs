@@ -14,6 +14,8 @@ public partial class HotelDbContext : DbContext
 
     public virtual DbSet<Floor> Floors { get; set; }
 
+    public virtual DbSet<Block> Blocks { get; set; }
+
     public virtual DbSet<Guest> Guests { get; set; }
 
     public virtual DbSet<Hotel> Hotels { get; set; }
@@ -28,6 +30,22 @@ public partial class HotelDbContext : DbContext
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
+        modelBuilder.Entity<Block>(entity =>
+        {
+            entity.HasIndex(e => new { e.HotelId, e.Name }, "UX_Blocks_Hotel_Name_Active")
+                .IsUnique()
+                .HasFilter("([IsActive]=(1))");
+
+            entity.Property(e => e.Id).HasDefaultValueSql("(newsequentialid())");
+            entity.Property(e => e.IsActive).HasDefaultValue(true);
+            entity.Property(e => e.Name).HasMaxLength(100);
+
+            entity.HasOne(d => d.Hotel).WithMany(p => p.Blocks)
+                .HasForeignKey(d => d.HotelId)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("FK_Blocks_Hotels");
+        });
+
         modelBuilder.Entity<Floor>(entity =>
         {
             entity.HasIndex(e => new { e.HotelId, e.Number }, "UX_Floors_Hotel_Number_Active")
@@ -41,6 +59,10 @@ public partial class HotelDbContext : DbContext
                 .HasForeignKey(d => d.HotelId)
                 .OnDelete(DeleteBehavior.ClientSetNull)
                 .HasConstraintName("FK_Floors_Hotels");
+
+            entity.HasOne(d => d.Block).WithMany(p => p.Floors)
+                .HasForeignKey(d => d.BlockId)
+                .HasConstraintName("FK_Floors_Blocks");
         });
 
         modelBuilder.Entity<Guest>(entity =>
