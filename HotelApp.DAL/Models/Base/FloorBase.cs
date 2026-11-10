@@ -3,6 +3,9 @@
 public abstract class FloorBase
 {
     public Guid HotelId { get; set; }
+    public Guid? BlockId { get; set; }
     public int Number { get; set; }
     public bool IsActive { get; set; } = true;
+
+
 }

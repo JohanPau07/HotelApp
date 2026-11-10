@@ -15,6 +15,7 @@ public class FloorRepository : BaseRepository<Floor>, IFloorRepository
         var floor = new Floor
         {
             HotelId = model.HotelId,
+            BlockId = model.BlockId,
             Number = model.Number,
             IsActive = model.IsActive
         };
@@ -28,6 +29,7 @@ public class FloorRepository : BaseRepository<Floor>, IFloorRepository
         if (floor is null) return OperationResult.Fail("Piso no encontrado");
 
         floor.HotelId = model.HotelId;
+        floor.BlockId = model.BlockId;
         floor.Number = model.Number;
         floor.IsActive = model.IsActive;
         return await SaveAsync("Piso actualizado", floor);
