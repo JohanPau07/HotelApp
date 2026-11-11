@@ -1,13 +1,16 @@
-﻿using Microsoft.Extensions.DependencyInjection;
+﻿using HotelApp.DAL.Data;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.DependencyInjection;
 
-namespace HotelApp.DAL
+namespace HotelApp.DAL;
+
+public static class DependencyInjection
 {
-    public static class DependencyInjection
+    public static IServiceCollection AddDAL(this IServiceCollection services, IConfiguration configuration)
     {
-        public static IServiceCollection AddDAL(this IServiceCollection services)
-        {
-            // Aquí se registrarán el DbContext y los repositorios
-            return services;
-        }
+        services.AddDbContext<HotelDbContext>(options =>
+            options.UseSqlServer(configuration.GetConnectionString("HotelDb")));
+        return services;
     }
 }

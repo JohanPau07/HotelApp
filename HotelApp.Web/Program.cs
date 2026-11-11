@@ -1,16 +1,11 @@
-using HotelApp.BL.Dependencies;
+using HotelApp.BL;
+using HotelApp.DAL;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// Add services to the container.
 builder.Services.AddControllersWithViews();
-builder.Services.AddRoomDependency();
-builder.Services.AddHotelDependency();
-builder.Services.AddFloorDependency();
-builder.Services.AddGuestDependency();
-builder.Services.AddNotificationDependency();
-builder.Services.AddReservationDependency();
-builder.Services.AddBlockDependency();
+builder.Services.AddDAL(builder.Configuration);
+builder.Services.AddBL();
 
 var app = builder.Build();
 
