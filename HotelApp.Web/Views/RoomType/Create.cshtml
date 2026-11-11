@@ -1,0 +1,12 @@
+﻿@model HotelApp.BL.Dtos.RoomType.SaveRoomTypeDto
+@{
+    ViewData["Title"] = "Nuevo tipo de habitación";
+}
+
+<h1>Nuevo tipo de habitación</h1>
+
+<form asp-action="Create" method="post">
+    <partial name="_Form" model="Model" />
+    <button type="submit" class="btn btn-primary">Guardar</button>
+    <a asp-action="Index" class="btn btn-secondary">Cancelar</a>
+</form>
