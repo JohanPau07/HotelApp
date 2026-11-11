@@ -1,0 +1,12 @@
+﻿@model HotelApp.BL.Dtos.Block.SaveBlockDto
+@{
+    ViewData["Title"] = "Nuevo bloque";
+}
+
+<h1>Nuevo bloque</h1>
+
+<form asp-action="Create" method="post">
+    <partial name="_Form" model="Model" />
+    <button type="submit" class="btn btn-primary">Guardar</button>
+    <a asp-action="Index" class="btn btn-secondary">Cancelar</a>
+</form>

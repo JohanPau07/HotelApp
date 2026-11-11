@@ -1,0 +1,23 @@
+﻿@using Microsoft.AspNetCore.Mvc.Rendering
+@model HotelApp.DAL.Models.Base.BlockBase
+
+<div asp-validation-summary="ModelOnly" class="text-danger"></div>
+
+<div class="mb-3">
+    <label asp-for="HotelId" class="form-label">Hotel</label>
+    <select asp-for="HotelId" asp-items="(SelectList)ViewBag.Hotels" class="form-select">
+        <option value="">-- Seleccione un hotel --</option>
+    </select>
+    <span asp-validation-for="HotelId" class="text-danger"></span>
+</div>
+
+<div class="mb-3">
+    <label asp-for="Name" class="form-label">Nombre</label>
+    <input asp-for="Name" class="form-control" />
+    <span asp-validation-for="Name" class="text-danger"></span>
+</div>
+
+<div class="form-check mb-3">
+    <input asp-for="IsActive" class="form-check-input" />
+    <label asp-for="IsActive" class="form-check-label">Activo</label>
+</div>
