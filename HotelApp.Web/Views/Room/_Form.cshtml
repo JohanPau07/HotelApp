@@ -1,0 +1,46 @@
+﻿@using Microsoft.AspNetCore.Mvc.Rendering
+@model HotelApp.DAL.Models.Base.RoomBase
+
+<div asp-validation-summary="ModelOnly" class="text-danger"></div>
+
+<div class="mb-3">
+    <label asp-for="FloorId" class="form-label">Piso</label>
+    <select asp-for="FloorId" asp-items="(SelectList)ViewBag.Floors" class="form-select">
+        <option value="">-- Seleccione un piso --</option>
+    </select>
+</div>
+
+<div class="mb-3">
+    <label asp-for="RoomTypeId" class="form-label">Tipo de habitación</label>
+    <select asp-for="RoomTypeId" asp-items="(SelectList)ViewBag.RoomTypes" class="form-select">
+        <option value="">-- Seleccione un tipo --</option>
+    </select>
+</div>
+
+<div class="mb-3">
+    <label asp-for="Number" class="form-label">Número</label>
+    <input asp-for="Number" class="form-control" />
+    <span asp-validation-for="Number" class="text-danger"></span>
+</div>
+
+<div class="mb-3">
+    <label asp-for="Capacity" class="form-label">Capacidad</label>
+    <input asp-for="Capacity" type="number" class="form-control" />
+    <span asp-validation-for="Capacity" class="text-danger"></span>
+</div>
+
+<div class="mb-3">
+    <label asp-for="Rate" class="form-label">Tarifa</label>
+    <input asp-for="Rate" type="number" step="0.01" class="form-control" />
+    <span asp-validation-for="Rate" class="text-danger"></span>
+</div>
+
+<div class="mb-3">
+    <label asp-for="Status" class="form-label">Estado</label>
+    <select asp-for="Status" asp-items="(SelectList)ViewBag.Statuses" class="form-select"></select>
+</div>
+
+<div class="form-check mb-3">
+    <input asp-for="IsActive" class="form-check-input" />
+    <label asp-for="IsActive" class="form-check-label">Activa</label>
+</div>

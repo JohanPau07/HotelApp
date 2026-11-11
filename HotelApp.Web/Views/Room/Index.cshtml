@@ -1,0 +1,56 @@
+﻿@model List<HotelApp.DAL.Models.Room>
+@{
+    ViewData["Title"] = "Habitaciones";
+    var floors = (Dictionary<Guid, string>)ViewBag.FloorNames;
+    var types = (Dictionary<Guid, string>)ViewBag.RoomTypeNames;
+    var statuses = (Dictionary<byte, string>)ViewBag.StatusNames;
+}
+
+<h1>Habitaciones</h1>
+
+@if (TempData["Ok"] is string ok)
+{
+    <div class="alert alert-success">@ok</div>
+}
+@if (TempData["Error"] is string error)
+{
+    <div class="alert alert-danger">@error</div>
+}
+
+<p><a asp-action="Create" class="btn btn-primary">Nueva habitación</a></p>
+
+<table class="table table-striped">
+    <thead>
+        <tr>
+            <th>Número</th>
+            <th>Piso</th>
+            <th>Tipo</th>
+            <th>Capacidad</th>
+            <th>Tarifa</th>
+            <th>Estado</th>
+            <th>Activa</th>
+            <th></th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var item in Model)
+        {
+            <tr>
+                <td>@item.Number</td>
+                <td>@floors.GetValueOrDefault(item.FloorId, "-")</td>
+                <td>@types.GetValueOrDefault(item.RoomTypeId, "-")</td>
+                <td>@item.Capacity</td>
+                <td>@item.Rate.ToString("N2")</td>
+                <td>@statuses.GetValueOrDefault(item.Status, "-")</td>
+                <td>@(item.IsActive ? "Sí" : "No")</td>
+                <td class="text-end">
+                    <a asp-action="Edit" asp-route-id="@item.Id" class="btn btn-sm btn-outline-secondary">Editar</a>
+                    <form asp-action="Delete" asp-route-id="@item.Id" method="post" class="d-inline"
+                          onsubmit="return confirm('¿Eliminar esta habitación?');">
+                        <button type="submit" class="btn btn-sm btn-outline-danger">Eliminar</button>
+                    </form>
+                </td>
+            </tr>
+        }
+    </tbody>
+</table>

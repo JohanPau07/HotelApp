@@ -1,0 +1,49 @@
+﻿@model List<HotelApp.DAL.Models.Floor>
+@{
+    ViewData["Title"] = "Pisos";
+    var hotels = (Dictionary<Guid, string>)ViewBag.HotelNames;
+    var blocks = (Dictionary<Guid, string>)ViewBag.BlockNames;
+}
+
+<h1>Pisos</h1>
+
+@if (TempData["Ok"] is string ok)
+{
+    <div class="alert alert-success">@ok</div>
+}
+@if (TempData["Error"] is string error)
+{
+    <div class="alert alert-danger">@error</div>
+}
+
+<p><a asp-action="Create" class="btn btn-primary">Nuevo piso</a></p>
+
+<table class="table table-striped">
+    <thead>
+        <tr>
+            <th>Número</th>
+            <th>Hotel</th>
+            <th>Bloque</th>
+            <th>Activo</th>
+            <th></th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var item in Model)
+        {
+            <tr>
+                <td>@item.Number</td>
+                <td>@hotels.GetValueOrDefault(item.HotelId, "-")</td>
+                <td>@(item.BlockId is Guid blockId ? blocks.GetValueOrDefault(blockId, "-") : "-")</td>
+                <td>@(item.IsActive ? "Sí" : "No")</td>
+                <td class="text-end">
+                    <a asp-action="Edit" asp-route-id="@item.Id" class="btn btn-sm btn-outline-secondary">Editar</a>
+                    <form asp-action="Delete" asp-route-id="@item.Id" method="post" class="d-inline"
+                          onsubmit="return confirm('¿Eliminar este piso?');">
+                        <button type="submit" class="btn btn-sm btn-outline-danger">Eliminar</button>
+                    </form>
+                </td>
+            </tr>
+        }
+    </tbody>
+</table>

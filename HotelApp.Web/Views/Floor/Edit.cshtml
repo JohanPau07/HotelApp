@@ -1,0 +1,13 @@
+﻿@model HotelApp.BL.Dtos.Floor.UpdateFloorDto
+@{
+    ViewData["Title"] = "Editar piso";
+}
+
+<h1>Editar piso</h1>
+
+<form asp-action="Edit" method="post">
+    <input type="hidden" asp-for="Id" />
+    <partial name="_Form" model="Model" />
+    <button type="submit" class="btn btn-primary">Guardar cambios</button>
+    <a asp-action="Index" class="btn btn-secondary">Cancelar</a>
+</form>
