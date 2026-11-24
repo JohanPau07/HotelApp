@@ -157,6 +157,7 @@ public class RoomController : Controller
         ViewBag.Floors = new SelectList(
             activeFloors.Select(f => new { f.Id, Label = labels[f.Id] }), "Id", "Label");
         ViewBag.RoomTypes = new SelectList(await GetRoomTypesAsync(), "Id", "Name");
+        ViewBag.RoomTypeList = await GetRoomTypesAsync();
         ViewBag.Statuses = new SelectList(
             StatusNames.Select(s => new { Id = s.Key, Name = s.Value }), "Id", "Name");
     }

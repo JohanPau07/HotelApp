@@ -54,7 +54,8 @@ public class RoomTypeController : Controller
         {
             Id = roomType.Id,
             Name = roomType.Name,
-            BaseRate = roomType.BaseRate
+            BaseRate = roomType.BaseRate,
+            Capacity = roomType.Capacity
         });
     }
 

@@ -12,8 +12,14 @@
 
 <div class="mb-3">
     <label asp-for="RoomTypeId" class="form-label">Tipo de habitación</label>
-    <select asp-for="RoomTypeId" asp-items="(SelectList)ViewBag.RoomTypes" class="form-select">
+    <select asp-for="RoomTypeId" class="form-select">
         <option value="">-- Seleccione un tipo --</option>
+        @foreach (var t in (List<HotelApp.DAL.Models.RoomType>)ViewBag.RoomTypeList)
+        {
+            <option value="@t.Id"
+                    data-rate="@t.BaseRate.ToString(System.Globalization.CultureInfo.InvariantCulture)"
+                    data-capacity="@t.Capacity">@t.Name</option>
+        }
     </select>
 </div>
 
@@ -50,3 +56,12 @@
     <input asp-for="IsActive" class="form-check-input" />
     <label asp-for="IsActive" class="form-check-label">Activa</label>
 </div>
+
+<script>
+    document.getElementById('RoomTypeId').addEventListener('change', function () {
+        var opt = this.options[this.selectedIndex];
+        if (!opt.value) return;
+        document.getElementById('Rate').value = opt.dataset.rate;
+        document.getElementById('Capacity').value = opt.dataset.capacity;
+    });
+</script>

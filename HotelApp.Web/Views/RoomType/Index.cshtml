@@ -21,6 +21,7 @@
         <tr>
             <th>Nombre</th>
             <th>Tarifa base</th>
+            <th>Capacidad</th>
             <th></th>
         </tr>
     </thead>
@@ -30,6 +31,7 @@
             <tr>
                 <td>@item.Name</td>
                 <td>@item.BaseRate.ToString("N2")</td>
+                <td>@item.Capacity</td>
                 <td class="text-end">
                     <a asp-action="Edit" asp-route-id="@item.Id" class="btn btn-sm btn-outline-secondary">Editar</a>
                     <form asp-action="Delete" asp-route-id="@item.Id" method="post" class="d-inline"
