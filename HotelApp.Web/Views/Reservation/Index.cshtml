@@ -1,0 +1,62 @@
+﻿@model HotelApp.Web.Models.ReservationIndexViewModel
+@{
+    ViewData["Title"] = "Reservas";
+}
+
+<h1>Reservas</h1>
+
+@if (Model.Error is not null)
+{
+    <div class="alert alert-danger">@Model.Error</div>
+}
+
+<ul class="nav nav-pills mb-3">
+    <li class="nav-item">
+        <a class="nav-link @(Model.Filter == "todas" ? "active" : "")"
+           asp-action="Index" asp-route-filter="todas">Todas</a>
+    </li>
+    <li class="nav-item">
+        <a class="nav-link @(Model.Filter == "proximas" ? "active" : "")"
+           asp-action="Index" asp-route-filter="proximas">Próximas a terminar</a>
+    </li>
+    <li class="nav-item">
+        <a class="nav-link @(Model.Filter == "nuevas" ? "active" : "")"
+           asp-action="Index" asp-route-filter="nuevas">Nuevas</a>
+    </li>
+</ul>
+
+<table class="table table-striped">
+    <thead>
+        <tr>
+            <th>Hotel</th>
+            <th>Habitación</th>
+            <th>Huésped</th>
+            <th>Entrada</th>
+            <th>Salida</th>
+            <th>Personas</th>
+            <th>Total</th>
+            <th>Estado</th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var item in Model.Items)
+        {
+            <tr>
+                <td>@item.Hotel</td>
+                <td>@item.Room</td>
+                <td>@item.Guest</td>
+                <td>@item.CheckIn.ToString("dd/MM/yyyy")</td>
+                <td>@item.CheckOut.ToString("dd/MM/yyyy")</td>
+                <td>@item.GuestCount</td>
+                <td>@item.TotalPrice.ToString("N2")</td>
+                <td>@item.Status</td>
+            </tr>
+        }
+        @if (!Model.Items.Any())
+        {
+            <tr>
+                <td colspan="8" class="text-center text-muted">No hay reservas para mostrar.</td>
+            </tr>
+        }
+    </tbody>
+</table>
