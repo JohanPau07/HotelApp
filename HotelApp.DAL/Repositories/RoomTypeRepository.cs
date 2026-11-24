@@ -15,7 +15,8 @@ public class RoomTypeRepository : BaseRepository<RoomType>, IRoomTypeRepository
         var roomType = new RoomType
         {
             Name = model.Name,
-            BaseRate = model.BaseRate
+            BaseRate = model.BaseRate,
+            Capacity = model.Capacity
         };
         _context.RoomTypes.Add(roomType);
         return await SaveAsync("Tipo de habitación creado", roomType);
@@ -28,6 +29,7 @@ public class RoomTypeRepository : BaseRepository<RoomType>, IRoomTypeRepository
 
         roomType.Name = model.Name;
         roomType.BaseRate = model.BaseRate;
+        roomType.Capacity = model.Capacity;
         return await SaveAsync("Tipo de habitación actualizado", roomType);
     }
 }

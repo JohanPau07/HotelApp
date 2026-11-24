@@ -94,7 +94,8 @@ public class RoomController : Controller
             Capacity = room.Capacity,
             Rate = room.Rate,
             Status = room.Status,
-            IsActive = room.IsActive
+            IsActive = room.IsActive,
+            Description = room.Description
         });
     }
 

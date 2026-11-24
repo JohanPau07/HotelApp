@@ -26,7 +26,9 @@ public class RoomTypeService : BaseService<RoomType, SaveRoomTypeDto, UpdateRoom
         return _roomTypeRepository.AddAsync(new RoomTypeAdd
         {
             Name = dto.Name.Trim(),
-            BaseRate = dto.BaseRate
+            BaseRate = dto.BaseRate,
+            Capacity = dto.Capacity
+
         });
     }
 
@@ -39,7 +41,9 @@ public class RoomTypeService : BaseService<RoomType, SaveRoomTypeDto, UpdateRoom
         {
             Id = dto.Id,
             Name = dto.Name.Trim(),
-            BaseRate = dto.BaseRate
+            BaseRate = dto.BaseRate,
+            Capacity = dto.Capacity
+
         });
     }
 
@@ -49,6 +53,8 @@ public class RoomTypeService : BaseService<RoomType, SaveRoomTypeDto, UpdateRoom
             return OperationResult.Fail("El nombre del tipo de habitación es obligatorio.");
         if (dto.BaseRate <= 0)
             return OperationResult.Fail("La tarifa base debe ser mayor que cero.");
+        if (dto.Capacity <= 0)
+            return OperationResult.Fail("La capacidad debe ser mayor que cero.");
         return null;
     }
 }

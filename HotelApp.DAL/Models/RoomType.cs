@@ -11,5 +11,7 @@ public partial class RoomType
 
     public decimal BaseRate { get; set; }
 
+    public int Capacity { get; set; }
+
     public virtual ICollection<Room> Rooms { get; set; } = new List<Room>();
 }
