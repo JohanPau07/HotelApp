@@ -13,6 +13,12 @@ public partial class Hotel
 
     public bool IsActive { get; set; }
 
+    public byte Stars { get; set; }
+
+    public string? Description { get; set; }
+
+    public string? Services { get; set; }
+
     public virtual ICollection<Floor> Floors { get; set; } = new List<Floor>();
 
     public virtual ICollection<Block> Blocks { get; set; } = new List<Block>();

@@ -21,6 +21,10 @@ public partial class Room
 
     public bool IsActive { get; set; }
 
+    public string? Description { get; set; }
+
+    public DateTime CreatedAt { get; set; }
+
     public virtual Floor Floor { get; set; } = null!;
 
     public virtual ICollection<Reservation> Reservations { get; set; } = new List<Reservation>();

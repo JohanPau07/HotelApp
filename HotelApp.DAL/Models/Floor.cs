@@ -19,5 +19,7 @@ public partial class Floor
 
     public virtual Block? Block { get; set; }
 
+    public DateTime CreatedAt { get; set; }
+
     public virtual ICollection<Room> Rooms { get; set; } = new List<Room>();
 }

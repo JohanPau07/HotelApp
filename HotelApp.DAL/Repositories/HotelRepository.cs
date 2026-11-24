@@ -16,7 +16,10 @@ public class HotelRepository : BaseRepository<Hotel>, IHotelRepository
         {
             Name = model.Name,
             Address = model.Address,
-            IsActive = model.IsActive
+            IsActive = model.IsActive,
+            Stars = model.Stars,
+            Description = model.Description,
+            Services = model.Services
         };
         _context.Hotels.Add(hotel);
         return await SaveAsync("Hotel creado", hotel);
@@ -30,6 +33,9 @@ public class HotelRepository : BaseRepository<Hotel>, IHotelRepository
         hotel.Name = model.Name;
         hotel.Address = model.Address;
         hotel.IsActive = model.IsActive;
+        hotel.Stars = model.Stars;
+        hotel.Description = model.Description;
+        hotel.Services = model.Services;
         return await SaveAsync("Hotel actualizado", hotel);
     }
 }

@@ -5,8 +5,9 @@ public abstract class RoomBase
     public Guid FloorId { get; set; }
     public Guid RoomTypeId { get; set; }
     public string Number { get; set; } = null!;
-    public int Capacity { get; set; }
+    public int Capacity { get; set; } = 1; 
     public decimal Rate { get; set; }
     public byte Status { get; set; }
     public bool IsActive { get; set; } = true;
+    public string? Description { get; set; }
 }

@@ -51,6 +51,9 @@ public partial class HotelDbContext : DbContext
             entity.HasIndex(e => new { e.HotelId, e.Number }, "UX_Floors_Hotel_Number_Active")
                 .IsUnique()
                 .HasFilter("([IsActive]=(1))");
+            entity.Property(e => e.CreatedAt)
+                .HasPrecision(0)
+                .HasDefaultValueSql("(sysdatetime())");
 
             entity.Property(e => e.Id).HasDefaultValueSql("(newsequentialid())");
             entity.Property(e => e.IsActive).HasDefaultValue(true);
@@ -83,6 +86,8 @@ public partial class HotelDbContext : DbContext
             entity.Property(e => e.Address).HasMaxLength(300);
             entity.Property(e => e.IsActive).HasDefaultValue(true);
             entity.Property(e => e.Name).HasMaxLength(150);
+            entity.Property(e => e.Description).HasMaxLength(1000);
+            entity.Property(e => e.Services).HasMaxLength(500);
         });
 
         modelBuilder.Entity<Notification>(entity =>
@@ -141,6 +146,10 @@ public partial class HotelDbContext : DbContext
             entity.Property(e => e.Id).HasDefaultValueSql("(newsequentialid())");
             entity.Property(e => e.IsActive).HasDefaultValue(true);
             entity.Property(e => e.Number).HasMaxLength(10);
+            entity.Property(e => e.CreatedAt)
+                .HasPrecision(0)
+                .HasDefaultValueSql("(sysdatetime())");
+            entity.Property(e => e.Description).HasMaxLength(500);
             entity.Property(e => e.Rate).HasColumnType("decimal(18, 2)");
 
             entity.HasOne(d => d.Floor).WithMany(p => p.Rooms)

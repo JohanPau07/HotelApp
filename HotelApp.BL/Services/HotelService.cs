@@ -27,7 +27,10 @@ public class HotelService : BaseService<Hotel, SaveHotelDto, UpdateHotelDto>, IH
         {
             Name = dto.Name.Trim(),
             Address = dto.Address.Trim(),
-            IsActive = dto.IsActive
+            IsActive = dto.IsActive,
+            Stars = dto.Stars,
+            Description = dto.Description?.Trim(),
+            Services = dto.Services?.Trim()
         });
     }
 
@@ -41,7 +44,10 @@ public class HotelService : BaseService<Hotel, SaveHotelDto, UpdateHotelDto>, IH
             Id = dto.Id,
             Name = dto.Name.Trim(),
             Address = dto.Address.Trim(),
-            IsActive = dto.IsActive
+            IsActive = dto.IsActive,
+            Stars = dto.Stars,
+            Description = dto.Description?.Trim(),
+            Services = dto.Services?.Trim()
         });
     }
 
@@ -51,6 +57,12 @@ public class HotelService : BaseService<Hotel, SaveHotelDto, UpdateHotelDto>, IH
             return OperationResult.Fail("El nombre del hotel es obligatorio.");
         if (string.IsNullOrWhiteSpace(dto.Address))
             return OperationResult.Fail("La dirección del hotel es obligatoria.");
+        if (dto.Stars < 1 || dto.Stars > 5)
+            return OperationResult.Fail("La calificación debe estar entre 1 y 5 estrellas.");
+        if (dto.Description is { Length: > 1000 })
+            return OperationResult.Fail("La descripción del hotel no puede superar los 1000 caracteres.");
+        if (dto.Services is { Length: > 500 })
+            return OperationResult.Fail("Los servicios del hotel no pueden superar los 500 caracteres.");
         return null;
     }
 }

@@ -20,7 +20,8 @@ public class RoomRepository : BaseRepository<Room>, IRoomRepository
             Capacity = model.Capacity,
             Rate = model.Rate,
             Status = model.Status,
-            IsActive = model.IsActive
+            IsActive = model.IsActive,
+            Description = model.Description
         };
         _context.Rooms.Add(room);
         return await SaveAsync("Habitación creada", room);
@@ -38,6 +39,7 @@ public class RoomRepository : BaseRepository<Room>, IRoomRepository
         room.Rate = model.Rate;
         room.Status = model.Status;
         room.IsActive = model.IsActive;
+        room.Description = model.Description;
         return await SaveAsync("Habitación actualizada", room);
     }
 }

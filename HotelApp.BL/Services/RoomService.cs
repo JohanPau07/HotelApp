@@ -31,7 +31,8 @@ public class RoomService : BaseService<Room, SaveRoomDto, UpdateRoomDto>, IRoomS
             Capacity = dto.Capacity,
             Rate = dto.Rate,
             Status = dto.Status,
-            IsActive = dto.IsActive
+            IsActive = dto.IsActive,
+            Description = dto.Description?.Trim()
         });
     }
 
@@ -49,7 +50,8 @@ public class RoomService : BaseService<Room, SaveRoomDto, UpdateRoomDto>, IRoomS
             Capacity = dto.Capacity,
             Rate = dto.Rate,
             Status = dto.Status,
-            IsActive = dto.IsActive
+            IsActive = dto.IsActive,
+            Description = dto.Description?.Trim()
         });
     }
 
@@ -67,6 +69,8 @@ public class RoomService : BaseService<Room, SaveRoomDto, UpdateRoomDto>, IRoomS
             return OperationResult.Fail("La tarifa debe ser mayor que cero.");
         if (dto.Status > 5)
             return OperationResult.Fail("El estado de la habitación no es válido.");
+        if (dto.Description is { Length: > 500 })
+            return OperationResult.Fail("La descripción de la habitación no puede superar los 500 caracteres.");
         return null;
     }
 }
