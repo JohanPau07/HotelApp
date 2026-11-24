@@ -51,7 +51,7 @@ public partial class HotelDbContext : DbContext
 
         modelBuilder.Entity<Floor>(entity =>
         {
-            entity.HasIndex(e => new { e.HotelId, e.Number }, "UX_Floors_Hotel_Number_Active")
+            entity.HasIndex(e => new { e.HotelId, e.BlockId, e.Number }, "UX_Floors_Hotel_Block_Number_Active")
                 .IsUnique()
                 .HasFilter("([IsActive]=(1))");
             entity.Property(e => e.CreatedAt)

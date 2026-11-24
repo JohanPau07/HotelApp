@@ -37,6 +37,7 @@
                 <td>@item.Services</td>
                 <td>@(item.IsActive ? "Sí" : "No")</td>
                 <td class="text-end">
+                    <a asp-controller="Block" asp-action="Index" asp-route-hotelId="@item.Id" class="btn btn-sm btn-outline-primary">Bloques</a>
                     <a asp-action="Edit" asp-route-id="@item.Id" class="btn btn-sm btn-outline-secondary">Editar</a>
                     <form asp-action="Delete" asp-route-id="@item.Id" method="post" class="d-inline"
                           onsubmit="return confirm('¿Eliminar este hotel?');">

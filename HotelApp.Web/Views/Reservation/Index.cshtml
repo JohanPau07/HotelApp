@@ -9,6 +9,7 @@
 {
     <div class="alert alert-danger">@Model.Error</div>
 }
+<p><a asp-action="Create" class="btn btn-primary">Nueva reserva</a></p>
 
 <ul class="nav nav-pills mb-3">
     <li class="nav-item">
@@ -24,6 +25,7 @@
            asp-action="Index" asp-route-filter="nuevas">Nuevas</a>
     </li>
 </ul>
+
 
 <table class="table table-striped">
     <thead>

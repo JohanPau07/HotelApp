@@ -2,6 +2,8 @@
 using HotelApp.DAL.Models;
 using HotelApp.Web.Models;
 using Microsoft.AspNetCore.Mvc;
+using HotelApp.BL.Dtos.Guest;
+using HotelApp.BL.Dtos.Reservation;
 
 namespace HotelApp.Web.Controllers;
 
@@ -90,5 +92,92 @@ public class ReservationController : Controller
         }).ToList();
 
         return View(model);
+    }
+    public async Task<IActionResult> Create()
+    {
+        var model = new ReservationFormViewModel { Rooms = await GetRoomOptionsAsync() };
+        return View(model);
+    }
+    [HttpPost, ValidateAntiForgeryToken]
+    public async Task<IActionResult> Create(ReservationFormViewModel model)
+    {
+        
+        ModelState.Clear();
+
+        var roomResult = await _roomService.GetByIdAsync(model.RoomId);
+        if (!roomResult.Success || roomResult.Data is not Room room)
+            return await ShowFormAsync(model, "Selecciona una habitación.");
+
+        // Huésped titular: si el documento ya existe se reutiliza, si no se crea
+        var documentId = (model.DocumentId ?? "").Trim();
+        var guests = (await _guestService.GetAllAsync()).Data as List<Guest> ?? new List<Guest>();
+        var guest = guests.FirstOrDefault(g => g.DocumentId == documentId);
+
+        if (guest is null)
+        {
+            var guestResult = await _guestService.SaveAsync(new SaveGuestDto
+            {
+                FirstName = model.FirstName ?? "",
+                LastName = model.LastName ?? "",
+                DocumentId = documentId,
+                Email = model.Email,
+                Phone = model.Phone
+            });
+
+            if (!guestResult.Success || guestResult.Data is not Guest newGuest)
+                return await ShowFormAsync(model, guestResult.Message);
+
+            guest = newGuest;
+        }
+
+        var nights = Math.Max(0, model.CheckOut.DayNumber - model.CheckIn.DayNumber);
+
+        var result = await _reservationService.SaveAsync(new SaveReservationDto
+        {
+            RoomId = room.Id,
+            GuestId = guest.Id,
+            CheckIn = model.CheckIn,
+            CheckOut = model.CheckOut,
+            GuestCount = model.GuestCount,
+            TotalPrice = nights * room.Rate,
+            Status = 1 // Confirmada
+        });
+
+        if (!result.Success)
+            return await ShowFormAsync(model, result.Message);
+
+        return RedirectToAction(nameof(Index), new { filter = "nuevas" });
+    }
+
+    private async Task<IActionResult> ShowFormAsync(ReservationFormViewModel model, string error)
+    {
+        model.Rooms = await GetRoomOptionsAsync();
+        model.Error = error;
+        return View(model);
+    }
+    private async Task<List<RoomOptionViewModel>> GetRoomOptionsAsync()
+    {
+        var hotels = ((await _hotelService.GetAllAsync()).Data as List<Hotel> ?? new List<Hotel>())
+            .ToDictionary(h => h.Id, h => h.Name);
+        var floors = ((await _floorService.GetAllAsync()).Data as List<Floor> ?? new List<Floor>())
+            .ToDictionary(f => f.Id, f => f);
+        var rooms = (await _roomService.GetAllAsync()).Data as List<Room> ?? new List<Room>();
+
+        return rooms
+            .Where(r => r.IsActive && r.Status != 4 && r.Status != 5 && floors.ContainsKey(r.FloorId))
+            .Select(r =>
+            {
+                var floor = floors[r.FloorId];
+                var hotel = hotels.GetValueOrDefault(floor.HotelId, "-");
+                return new RoomOptionViewModel
+                {
+                    Id = r.Id,
+                    Label = $"{hotel} - Piso {floor.Number} - Hab. {r.Number} (máx. {r.Capacity} personas)",
+                    Capacity = r.Capacity,
+                    Rate = r.Rate
+                };
+            })
+            .OrderBy(o => o.Label)
+            .ToList();
     }
 }
