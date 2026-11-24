@@ -42,7 +42,8 @@ public class RoomController : Controller
         ViewBag.FloorNames = (await GetFloorLabelsAsync());
         ViewBag.RoomTypeNames = (await GetRoomTypesAsync()).ToDictionary(t => t.Id, t => t.Name);
         ViewBag.StatusNames = StatusNames;
-        return View(result.Data as List<Room> ?? new List<Room>());
+        var rooms = result.Data as List<Room> ?? new List<Room>();
+        return View(rooms.OrderByDescending(r => r.CreatedAt).ToList());
     }
 
     public async Task<IActionResult> Create()

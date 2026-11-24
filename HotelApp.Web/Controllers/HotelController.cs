@@ -20,7 +20,8 @@ public class HotelController : Controller
             TempData["Error"] = result.Message;
             return View(new List<Hotel>());
         }
-        return View(result.Data as List<Hotel> ?? new List<Hotel>());
+        var hotels = result.Data as List<Hotel> ?? new List<Hotel>();
+        return View(hotels.OrderByDescending(h => h.CreatedAt).ToList());
     }
 
     public IActionResult Create() => View(new SaveHotelDto());

@@ -29,7 +29,8 @@ public class FloorController : Controller
 
         ViewBag.HotelNames = (await GetHotelsAsync()).ToDictionary(h => h.Id, h => h.Name);
         ViewBag.BlockNames = (await GetBlocksAsync()).ToDictionary(b => b.Id, b => b.Name);
-        return View(result.Data as List<Floor> ?? new List<Floor>());
+        var floors = result.Data as List<Floor> ?? new List<Floor>();
+        return View(floors.OrderByDescending(f => f.CreatedAt).ToList());
     }
 
     public async Task<IActionResult> Create()

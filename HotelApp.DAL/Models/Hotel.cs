@@ -19,6 +19,8 @@ public partial class Hotel
 
     public string? Services { get; set; }
 
+    public DateTime CreatedAt { get; set; }
+
     public virtual ICollection<Floor> Floors { get; set; } = new List<Floor>();
 
     public virtual ICollection<Block> Blocks { get; set; } = new List<Block>();

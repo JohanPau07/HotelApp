@@ -20,7 +20,8 @@ public class RoomTypeController : Controller
             TempData["Error"] = result.Message;
             return View(new List<RoomType>());
         }
-        return View(result.Data as List<RoomType> ?? new List<RoomType>());
+        var roomTypes = result.Data as List<RoomType> ?? new List<RoomType>();
+        return View(roomTypes.OrderByDescending(t => t.CreatedAt).ToList());
     }
 
     public IActionResult Create() => View(new SaveRoomTypeDto());

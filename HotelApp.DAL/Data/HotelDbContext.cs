@@ -39,6 +39,9 @@ public partial class HotelDbContext : DbContext
             entity.Property(e => e.Id).HasDefaultValueSql("(newsequentialid())");
             entity.Property(e => e.IsActive).HasDefaultValue(true);
             entity.Property(e => e.Name).HasMaxLength(100);
+            entity.Property(e => e.CreatedAt)
+                .HasPrecision(0)
+                .HasDefaultValueSql("(sysdatetime())");
 
             entity.HasOne(d => d.Hotel).WithMany(p => p.Blocks)
                 .HasForeignKey(d => d.HotelId)
@@ -88,6 +91,9 @@ public partial class HotelDbContext : DbContext
             entity.Property(e => e.Name).HasMaxLength(150);
             entity.Property(e => e.Description).HasMaxLength(1000);
             entity.Property(e => e.Services).HasMaxLength(500);
+            entity.Property(e => e.CreatedAt)
+                .HasPrecision(0)
+                .HasDefaultValueSql("(sysdatetime())");
         });
 
         modelBuilder.Entity<Notification>(entity =>
@@ -168,6 +174,9 @@ public partial class HotelDbContext : DbContext
             entity.Property(e => e.Id).HasDefaultValueSql("(newsequentialid())");
             entity.Property(e => e.BaseRate).HasColumnType("decimal(18, 2)");
             entity.Property(e => e.Name).HasMaxLength(100);
+            entity.Property(e => e.CreatedAt)
+                .HasPrecision(0)
+                .HasDefaultValueSql("(sysdatetime())");
         });
 
         OnModelCreatingPartial(modelBuilder);

@@ -11,6 +11,7 @@ public partial class Block
     public bool IsActive { get; set; }
 
     public virtual Hotel Hotel { get; set; } = null!;
+    public DateTime CreatedAt { get; set; }
 
     public virtual ICollection<Floor> Floors { get; set; } = new List<Floor>();
 }

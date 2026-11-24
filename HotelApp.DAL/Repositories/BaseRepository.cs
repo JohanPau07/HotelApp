@@ -2,6 +2,7 @@
 using HotelApp.DAL.Interfaces;
 using HotelApp.DAL.Models.Result;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Data.SqlClient;
 
 namespace HotelApp.DAL.Repositories;
 
@@ -39,6 +40,15 @@ public abstract class BaseRepository<TEntity> : IBaseRepository<TEntity> where T
         {
             await _context.SaveChangesAsync();
             return OperationResult.Ok(okMessage, data);
+        }
+        catch (DbUpdateException ex) when (ex.InnerException is SqlException sql)
+        {
+            return OperationResult.Fail(sql.Number switch
+            {
+                547 => "No se puede eliminar porque este registro está en uso por otros registros. Elimina o cambia primero los que dependen de él.",
+                2601 or 2627 => "Ya existe un registro con esos datos. Revisa el nombre o número e inténtalo de nuevo.",
+                _ => sql.Message
+            });
         }
         catch (Exception ex)
         {
