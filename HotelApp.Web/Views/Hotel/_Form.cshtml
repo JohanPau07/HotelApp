@@ -14,6 +14,29 @@
     <span asp-validation-for="Address" class="text-danger"></span>
 </div>
 
+<div class="mb-3">
+    <label asp-for="Stars" class="form-label">Calificación</label>
+    <select asp-for="Stars" class="form-select">
+        @for (var i = 1; i <= 5; i++)
+        {
+            <option value="@i">@i @(i == 1 ? "estrella" : "estrellas")</option>
+        }
+    </select>
+    <span asp-validation-for="Stars" class="text-danger"></span>
+</div>
+
+<div class="mb-3">
+    <label asp-for="Description" class="form-label">Descripción</label>
+    <textarea asp-for="Description" class="form-control" rows="3"></textarea>
+    <span asp-validation-for="Description" class="text-danger"></span>
+</div>
+
+<div class="mb-3">
+    <label asp-for="Services" class="form-label">Servicios</label>
+    <input asp-for="Services" class="form-control" placeholder="Ej: Piscina, WiFi, Desayuno" />
+    <span asp-validation-for="Services" class="text-danger"></span>
+</div>
+
 <div class="form-check mb-3">
     <input asp-for="IsActive" class="form-check-input" />
     <label asp-for="IsActive" class="form-check-label">Activo</label>

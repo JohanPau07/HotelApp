@@ -55,7 +55,10 @@ public class HotelController : Controller
             Id = hotel.Id,
             Name = hotel.Name,
             Address = hotel.Address,
-            IsActive = hotel.IsActive
+            IsActive = hotel.IsActive,
+            Stars = hotel.Stars,
+            Description = hotel.Description,
+            Services = hotel.Services
         });
     }
 
