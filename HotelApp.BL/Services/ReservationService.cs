@@ -15,18 +15,26 @@ public class ReservationService : BaseService<Reservation, SaveReservationDto, U
     private const byte Cancelled = 4;
 
     private readonly IReservationRepository _reservationRepository;
+    private readonly IRoomRepository _roomRepository;
 
-    public ReservationService(IReservationRepository repository) : base(repository)
+    public ReservationService(IReservationRepository repository, IRoomRepository roomRepository) : base(repository)
     {
         _reservationRepository = repository;
+        _roomRepository = roomRepository;
     }
 
-    public override Task<OperationResult> SaveAsync(SaveReservationDto dto)
+    public override async Task<OperationResult> SaveAsync(SaveReservationDto dto)
     {
         var error = Validate(dto);
-        if (error != null) return Task.FromResult(error);
+        if (error != null) return error;
 
-        return _reservationRepository.AddAsync(new ReservationAdd
+        if (dto.CheckIn < DateOnly.FromDateTime(DateTime.Today))
+            return OperationResult.Fail("No se pueden hacer reservas en fechas pasadas. Elige la fecha de hoy o una fecha futura.");
+
+        var capacityError = await ValidateCapacityAsync(dto);
+        if (capacityError != null) return capacityError;
+
+        return await _reservationRepository.AddAsync(new ReservationAdd
         {
             RoomId = dto.RoomId,
             GuestId = dto.GuestId,
@@ -51,6 +59,9 @@ public class ReservationService : BaseService<Reservation, SaveReservationDto, U
             (existing.Status == Completed || existing.Status == Cancelled))
             return OperationResult.Fail("Una reserva completada o cancelada no puede modificarse.");
 
+        var capacityError = await ValidateCapacityAsync(dto);
+        if (capacityError != null) return capacityError;
+
         return await _reservationRepository.UpdateAsync(new ReservationUpdate
         {
             Id = dto.Id,
@@ -62,6 +73,20 @@ public class ReservationService : BaseService<Reservation, SaveReservationDto, U
             TotalPrice = dto.TotalPrice,
             Status = dto.Status
         });
+    }
+
+    private async Task<OperationResult?> ValidateCapacityAsync(ReservationBase dto)
+    {
+        var roomResult = await _roomRepository.GetByIdAsync(dto.RoomId);
+        if (!roomResult.Success || roomResult.Data is not Room room)
+            return OperationResult.Fail("La habitación seleccionada no existe.");
+
+        if (dto.GuestCount > room.Capacity)
+            return OperationResult.Fail(
+                $"La habitación {room.Number} permite máximo {room.Capacity} personas y se indicaron {dto.GuestCount}. " +
+                "Elige una habitación con mayor capacidad o divide el grupo en más de una habitación.");
+
+        return null;
     }
 
     private static OperationResult? Validate(ReservationBase dto)
