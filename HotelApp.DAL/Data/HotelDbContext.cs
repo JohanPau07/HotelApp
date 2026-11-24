@@ -149,6 +149,10 @@ public partial class HotelDbContext : DbContext
 
             entity.HasIndex(e => e.RoomTypeId, "IX_Rooms_RoomTypeId");
 
+            entity.HasIndex(e => new { e.FloorId, e.Number }, "UX_Rooms_Floor_Number_Active")
+                  .IsUnique()
+                  .HasFilter("([IsActive]=(1))");
+
             entity.Property(e => e.Id).HasDefaultValueSql("(newsequentialid())");
             entity.Property(e => e.IsActive).HasDefaultValue(true);
             entity.Property(e => e.Number).HasMaxLength(10);
