@@ -2,7 +2,7 @@
 using HotelApp.BL.Dtos.Floor;
 using HotelApp.BL.Interfaces;
 using HotelApp.DAL.Models;
-using HotelApp.DAL.Models.Base;
+using HotelApp.Web.Models;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 
@@ -21,98 +21,120 @@ public class FloorController : Controller
         _blockService = blockService;
     }
 
-    public async Task<IActionResult> Index()
+    public async Task<IActionResult> Index(Guid? blockId)
     {
+        var model = new FloorIndexViewModel { BlockId = blockId };
+
         var result = await _floorService.GetAllAsync();
         if (!result.Success)
-            TempData["Error"] = result.Message;
+        {
+            model.Error = result.Message;
+            return View(model);
+        }
 
-        ViewBag.HotelNames = (await GetHotelsAsync()).ToDictionary(h => h.Id, h => h.Name);
-        ViewBag.BlockNames = (await GetBlocksAsync()).ToDictionary(b => b.Id, b => b.Name);
+        model.HotelNames = (await GetHotelsAsync()).ToDictionary(h => h.Id, h => h.Name);
+        model.BlockNames = (await GetBlocksAsync()).ToDictionary(b => b.Id, b => b.Name);
+        if (blockId.HasValue)
+            model.BlockName = model.BlockNames.GetValueOrDefault(blockId.Value);
+
         var floors = result.Data as List<Floor> ?? new List<Floor>();
-        return View(floors.OrderByDescending(f => f.CreatedAt).ToList());
+        if (blockId.HasValue)
+            floors = floors.Where(f => f.BlockId == blockId.Value).ToList();
+
+        model.Items = floors.OrderByDescending(f => f.CreatedAt).ToList();
+        return View(model);
     }
 
-    public async Task<IActionResult> Create()
+    public async Task<IActionResult> Create(Guid? returnBlockId)
     {
-        await LoadListsAsync();
-        return View(new SaveFloorDto());
+        var model = new FloorFormViewModel { ReturnBlockId = returnBlockId, BlockId = returnBlockId };
+
+        // Si vienes de un bloque, el bloque y su hotel ya vienen seleccionados
+        if (returnBlockId.HasValue)
+        {
+            var block = (await GetBlocksAsync()).FirstOrDefault(b => b.Id == returnBlockId.Value);
+            if (block is not null)
+                model.HotelId = block.HotelId;
+        }
+
+        await LoadOptionsAsync(model);
+        return View(model);
     }
 
     [HttpPost, ValidateAntiForgeryToken]
-    public async Task<IActionResult> Create(SaveFloorDto dto)
+    public async Task<IActionResult> Create(FloorFormViewModel model)
     {
-        ModelState.Remove(nameof(dto.HotelId));
-        await ValidateBlockAsync(dto);
+        var error = await ValidateBlockAsync(model.BlockId, model.HotelId);
+        if (error is not null)
+            return await ShowFormAsync(model, error);
 
-        if (!ModelState.IsValid)
+        var result = await _floorService.SaveAsync(new SaveFloorDto
         {
-            await LoadListsAsync();
-            return View(dto);
-        }
+            HotelId = model.HotelId,
+            BlockId = model.BlockId,
+            Number = model.Number,
+            IsActive = model.IsActive
+        });
 
-        var result = await _floorService.SaveAsync(dto);
         if (!result.Success)
-        {
-            ModelState.AddModelError(string.Empty, result.Message);
-            await LoadListsAsync();
-            return View(dto);
-        }
+            return await ShowFormAsync(model, result.Message);
 
-        TempData["Ok"] = result.Message;
-        return RedirectToAction(nameof(Index));
+        return RedirectToAction(nameof(Index), new { blockId = model.ReturnBlockId });
     }
 
-    public async Task<IActionResult> Edit(Guid id)
+    public async Task<IActionResult> Edit(Guid id, Guid? returnBlockId)
     {
         var result = await _floorService.GetByIdAsync(id);
         if (!result.Success || result.Data is not Floor floor)
-        {
-            TempData["Error"] = result.Message;
-            return RedirectToAction(nameof(Index));
-        }
+            return RedirectToAction(nameof(Index), new { blockId = returnBlockId });
 
-        await LoadListsAsync();
-        return View(new UpdateFloorDto
+        var model = new FloorFormViewModel
         {
             Id = floor.Id,
             HotelId = floor.HotelId,
             BlockId = floor.BlockId,
             Number = floor.Number,
-            IsActive = floor.IsActive
-        });
+            IsActive = floor.IsActive,
+            ReturnBlockId = returnBlockId
+        };
+
+        await LoadOptionsAsync(model);
+        return View(model);
     }
 
     [HttpPost, ValidateAntiForgeryToken]
-    public async Task<IActionResult> Edit(UpdateFloorDto dto)
+    public async Task<IActionResult> Edit(FloorFormViewModel model)
     {
-        ModelState.Remove(nameof(dto.HotelId));
-        await ValidateBlockAsync(dto);
+        var error = await ValidateBlockAsync(model.BlockId, model.HotelId);
+        if (error is not null)
+            return await ShowFormAsync(model, error);
 
-        if (!ModelState.IsValid)
+        var result = await _floorService.UpdateAsync(new UpdateFloorDto
         {
-            await LoadListsAsync();
-            return View(dto);
-        }
+            Id = model.Id ?? Guid.Empty,
+            HotelId = model.HotelId,
+            BlockId = model.BlockId,
+            Number = model.Number,
+            IsActive = model.IsActive
+        });
 
-        var result = await _floorService.UpdateAsync(dto);
         if (!result.Success)
-        {
-            ModelState.AddModelError(string.Empty, result.Message);
-            await LoadListsAsync();
-            return View(dto);
-        }
+            return await ShowFormAsync(model, result.Message);
 
-        TempData["Ok"] = result.Message;
-        return RedirectToAction(nameof(Index));
+        return RedirectToAction(nameof(Index), new { blockId = model.ReturnBlockId });
     }
 
     [HttpPost, ValidateAntiForgeryToken]
-    public async Task<IActionResult> Delete(Guid id)
+    public async Task<IActionResult> Delete(Guid id, Guid? blockId)
     {
         var result = await _floorService.RemoveAsync(new RemoveDto { Id = id });
-        TempData[result.Success ? "Ok" : "Error"] = result.Message;
-        return RedirectToAction(nameof(Index));
+        if (!result.Success)
+        {
+            var model = new FloorIndexViewModel { BlockId = blockId, Error = result.Message };
+            return View(nameof(Index), model);
+        }
+
+        return RedirectToAction(nameof(Index), new { blockId });
     }
 
     private async Task<List<Hotel>> GetHotelsAsync()
@@ -127,31 +149,40 @@ public class FloorController : Controller
         return result.Data as List<Block> ?? new List<Block>();
     }
 
-    private async Task LoadListsAsync()
+    private async Task LoadOptionsAsync(FloorFormViewModel model)
     {
         var hotels = await GetHotelsAsync();
         var hotelNames = hotels.ToDictionary(h => h.Id, h => h.Name);
         var blocks = await GetBlocksAsync();
 
-        ViewBag.Hotels = new SelectList(hotels.Where(h => h.IsActive), "Id", "Name");
-        ViewBag.Blocks = new SelectList(
-            blocks.Where(b => b.IsActive)
-                  .Select(b => new { b.Id, Label = $"{b.Name} ({hotelNames.GetValueOrDefault(b.HotelId, "-")})" }),
-            "Id", "Label");
+        model.Hotels = hotels.Where(h => h.IsActive)
+            .Select(h => new SelectListItem(h.Name, h.Id.ToString()))
+            .ToList();
+
+        model.Blocks = blocks.Where(b => b.IsActive)
+            .Select(b => new SelectListItem(
+                $"{b.Name} ({hotelNames.GetValueOrDefault(b.HotelId, "-")})", b.Id.ToString()))
+            .ToList();
     }
 
-    private async Task ValidateBlockAsync(FloorBase dto)
+    private async Task<string?> ValidateBlockAsync(Guid? blockId, Guid hotelId)
     {
-        if (dto.BlockId is null) return;
+        if (blockId is null) return null;
 
-        var result = await _blockService.GetByIdAsync(dto.BlockId.Value);
+        var result = await _blockService.GetByIdAsync(blockId.Value);
         if (!result.Success || result.Data is not Block block)
-        {
-            ModelState.AddModelError(string.Empty, "El bloque seleccionado no existe.");
-            return;
-        }
+            return "El bloque seleccionado no existe.";
 
-        if (block.HotelId != dto.HotelId)
-            ModelState.AddModelError(string.Empty, "El bloque no pertenece al hotel seleccionado.");
+        if (block.HotelId != hotelId)
+            return "El bloque no pertenece al hotel seleccionado.";
+
+        return null;
+    }
+
+    private async Task<IActionResult> ShowFormAsync(FloorFormViewModel model, string error)
+    {
+        await LoadOptionsAsync(model);
+        model.Error = error;
+        return View(model);
     }
 }

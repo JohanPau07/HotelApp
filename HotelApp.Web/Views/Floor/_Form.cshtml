@@ -1,18 +1,22 @@
-﻿@using Microsoft.AspNetCore.Mvc.Rendering
-@model HotelApp.DAL.Models.Base.FloorBase
+﻿@model HotelApp.Web.Models.FloorFormViewModel
 
-<div asp-validation-summary="ModelOnly" class="text-danger"></div>
+@if (Model.Error is not null)
+{
+    <div class="alert alert-danger">@Model.Error</div>
+}
+
+<input type="hidden" asp-for="ReturnBlockId" />
 
 <div class="mb-3">
     <label asp-for="HotelId" class="form-label">Hotel</label>
-    <select asp-for="HotelId" asp-items="(SelectList)ViewBag.Hotels" class="form-select">
+    <select asp-for="HotelId" asp-items="Model.Hotels" class="form-select">
         <option value="">-- Seleccione un hotel --</option>
     </select>
 </div>
 
 <div class="mb-3">
     <label asp-for="BlockId" class="form-label">Bloque (opcional)</label>
-    <select asp-for="BlockId" asp-items="(SelectList)ViewBag.Blocks" class="form-select">
+    <select asp-for="BlockId" asp-items="Model.Blocks" class="form-select">
         <option value="">-- Sin bloque --</option>
     </select>
 </div>
@@ -20,7 +24,6 @@
 <div class="mb-3">
     <label asp-for="Number" class="form-label">Número de piso</label>
     <input asp-for="Number" type="number" class="form-control" />
-    <span asp-validation-for="Number" class="text-danger"></span>
 </div>
 
 <div class="form-check mb-3">

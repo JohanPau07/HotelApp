@@ -29,6 +29,7 @@
                 <td>@Model.HotelNames.GetValueOrDefault(item.HotelId, "-")</td>
                 <td>@(item.IsActive ? "Sí" : "No")</td>
                 <td class="text-end">
+                    <a asp-controller="Floor" asp-action="Index" asp-route-blockId="@item.Id" class="btn btn-sm btn-outline-primary">Pisos</a>
                     <a asp-action="Edit" asp-route-id="@item.Id" asp-route-returnHotelId="@Model.HotelId" class="btn btn-sm btn-outline-secondary">Editar</a>
                     <form asp-action="Delete" asp-route-id="@item.Id" asp-route-hotelId="@Model.HotelId" method="post" class="d-inline"
                           onsubmit="return confirm('¿Eliminar este bloque?');">
