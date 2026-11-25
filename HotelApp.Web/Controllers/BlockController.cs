@@ -67,8 +67,7 @@ public class BlockController : Controller
             return View(dto);
         }
 
-        TempData["Ok"] = result.Message;
-        return RedirectToAction(nameof(Index));
+        return RedirectToAction(nameof(Index), new { hotelId = dto.HotelId });
     }
 
     public async Task<IActionResult> Edit(Guid id)
@@ -109,8 +108,7 @@ public class BlockController : Controller
             return View(dto);
         }
 
-        TempData["Ok"] = result.Message;
-        return RedirectToAction(nameof(Index));
+        return RedirectToAction(nameof(Index), new { hotelId = dto.HotelId });
     }
 
     [HttpPost, ValidateAntiForgeryToken]
