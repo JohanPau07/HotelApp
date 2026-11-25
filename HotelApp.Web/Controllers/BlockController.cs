@@ -42,81 +42,79 @@ public class BlockController : Controller
         model.Items = blocks.OrderByDescending(b => b.CreatedAt).ToList();
         return View(model);
     }
-    public async Task<IActionResult> Create()
+
+    public async Task<IActionResult> Create(Guid? returnHotelId)
     {
-        await LoadHotelsAsync();
-        return View(new SaveBlockDto());
+        var model = new BlockFormViewModel
+        {
+            HotelId = returnHotelId ?? Guid.Empty,
+            ReturnHotelId = returnHotelId,
+            Hotels = await GetHotelOptionsAsync()
+        };
+        return View(model);
     }
 
     [HttpPost, ValidateAntiForgeryToken]
-    public async Task<IActionResult> Create(SaveBlockDto dto)
+    public async Task<IActionResult> Create(BlockFormViewModel model)
     {
-        ModelState.Remove(nameof(dto.HotelId));
-
-        if (!ModelState.IsValid)
+        var result = await _blockService.SaveAsync(new SaveBlockDto
         {
-            await LoadHotelsAsync();
-            return View(dto);
-        }
+            HotelId = model.HotelId,
+            Name = model.Name,
+            IsActive = model.IsActive
+        });
 
-        var result = await _blockService.SaveAsync(dto);
         if (!result.Success)
-        {
-            ModelState.AddModelError(string.Empty, result.Message);
-            await LoadHotelsAsync();
-            return View(dto);
-        }
+            return await ShowFormAsync(model, result.Message);
 
-        return RedirectToAction(nameof(Index), new { hotelId = dto.HotelId });
+        return RedirectToAction(nameof(Index), new { hotelId = model.ReturnHotelId });
     }
 
-    public async Task<IActionResult> Edit(Guid id)
+    public async Task<IActionResult> Edit(Guid id, Guid? returnHotelId)
     {
         var result = await _blockService.GetByIdAsync(id);
         if (!result.Success || result.Data is not Block block)
-        {
-            TempData["Error"] = result.Message;
-            return RedirectToAction(nameof(Index));
-        }
+            return RedirectToAction(nameof(Index), new { hotelId = returnHotelId });
 
-        await LoadHotelsAsync();
-        return View(new UpdateBlockDto
+        return View(new BlockFormViewModel
         {
             Id = block.Id,
             HotelId = block.HotelId,
             Name = block.Name,
-            IsActive = block.IsActive
+            IsActive = block.IsActive,
+            ReturnHotelId = returnHotelId,
+            Hotels = await GetHotelOptionsAsync()
         });
     }
 
     [HttpPost, ValidateAntiForgeryToken]
-    public async Task<IActionResult> Edit(UpdateBlockDto dto)
+    public async Task<IActionResult> Edit(BlockFormViewModel model)
     {
-        ModelState.Remove(nameof(dto.HotelId));
-
-        if (!ModelState.IsValid)
+        var result = await _blockService.UpdateAsync(new UpdateBlockDto
         {
-            await LoadHotelsAsync();
-            return View(dto);
-        }
+            Id = model.Id ?? Guid.Empty,
+            HotelId = model.HotelId,
+            Name = model.Name,
+            IsActive = model.IsActive
+        });
 
-        var result = await _blockService.UpdateAsync(dto);
         if (!result.Success)
-        {
-            ModelState.AddModelError(string.Empty, result.Message);
-            await LoadHotelsAsync();
-            return View(dto);
-        }
+            return await ShowFormAsync(model, result.Message);
 
-        return RedirectToAction(nameof(Index), new { hotelId = dto.HotelId });
+        return RedirectToAction(nameof(Index), new { hotelId = model.ReturnHotelId });
     }
 
     [HttpPost, ValidateAntiForgeryToken]
-    public async Task<IActionResult> Delete(Guid id)
+    public async Task<IActionResult> Delete(Guid id, Guid? hotelId)
     {
         var result = await _blockService.RemoveAsync(new RemoveDto { Id = id });
-        TempData[result.Success ? "Ok" : "Error"] = result.Message;
-        return RedirectToAction(nameof(Index));
+        if (!result.Success)
+        {
+            var model = new BlockIndexViewModel { HotelId = hotelId, Error = result.Message };
+            return View(nameof(Index), model);
+        }
+
+        return RedirectToAction(nameof(Index), new { hotelId });
     }
 
     private async Task<List<Hotel>> GetHotelsAsync()
@@ -125,9 +123,18 @@ public class BlockController : Controller
         return result.Data as List<Hotel> ?? new List<Hotel>();
     }
 
-    private async Task LoadHotelsAsync()
+    private async Task<List<SelectListItem>> GetHotelOptionsAsync()
     {
         var hotels = await GetHotelsAsync();
-        ViewBag.Hotels = new SelectList(hotels.Where(h => h.IsActive), "Id", "Name");
+        return hotels.Where(h => h.IsActive)
+            .Select(h => new SelectListItem(h.Name, h.Id.ToString()))
+            .ToList();
+    }
+
+    private async Task<IActionResult> ShowFormAsync(BlockFormViewModel model, string error)
+    {
+        model.Hotels = await GetHotelOptionsAsync();
+        model.Error = error;
+        return View(model);
     }
 }

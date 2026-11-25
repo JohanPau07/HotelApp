@@ -10,7 +10,7 @@
     <div class="alert alert-danger">@Model.Error</div>
 }
 
-<p><a asp-action="Create" class="btn btn-primary">Nuevo bloque</a></p>
+<p><a asp-action="Create" asp-route-returnHotelId="@Model.HotelId" class="btn btn-primary">Nuevo bloque</a></p>
 
 <table class="table table-striped">
     <thead>
@@ -29,8 +29,8 @@
                 <td>@Model.HotelNames.GetValueOrDefault(item.HotelId, "-")</td>
                 <td>@(item.IsActive ? "Sí" : "No")</td>
                 <td class="text-end">
-                    <a asp-action="Edit" asp-route-id="@item.Id" class="btn btn-sm btn-outline-secondary">Editar</a>
-                    <form asp-action="Delete" asp-route-id="@item.Id" method="post" class="d-inline"
+                    <a asp-action="Edit" asp-route-id="@item.Id" asp-route-returnHotelId="@Model.HotelId" class="btn btn-sm btn-outline-secondary">Editar</a>
+                    <form asp-action="Delete" asp-route-id="@item.Id" asp-route-hotelId="@Model.HotelId" method="post" class="d-inline"
                           onsubmit="return confirm('¿Eliminar este bloque?');">
                         <button type="submit" class="btn btn-sm btn-outline-danger">Eliminar</button>
                     </form>
