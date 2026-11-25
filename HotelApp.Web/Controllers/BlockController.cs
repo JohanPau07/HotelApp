@@ -2,6 +2,7 @@
 using HotelApp.BL.Dtos.Block;
 using HotelApp.BL.Interfaces;
 using HotelApp.DAL.Models;
+using HotelApp.Web.Models;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 
@@ -18,18 +19,29 @@ public class BlockController : Controller
         _hotelService = hotelService;
     }
 
-    public async Task<IActionResult> Index()
+    public async Task<IActionResult> Index(Guid? hotelId)
     {
+        var model = new BlockIndexViewModel { HotelId = hotelId };
+
         var result = await _blockService.GetAllAsync();
         if (!result.Success)
-            TempData["Error"] = result.Message;
+        {
+            model.Error = result.Message;
+            return View(model);
+        }
 
         var hotels = await GetHotelsAsync();
-        ViewBag.HotelNames = hotels.ToDictionary(h => h.Id, h => h.Name);
-        var blocks = result.Data as List<Block> ?? new List<Block>();
-        return View(blocks.OrderByDescending(b => b.CreatedAt).ToList());
-    }
+        model.HotelNames = hotels.ToDictionary(h => h.Id, h => h.Name);
+        if (hotelId.HasValue)
+            model.HotelName = model.HotelNames.GetValueOrDefault(hotelId.Value);
 
+        var blocks = result.Data as List<Block> ?? new List<Block>();
+        if (hotelId.HasValue)
+            blocks = blocks.Where(b => b.HotelId == hotelId.Value).ToList();
+
+        model.Items = blocks.OrderByDescending(b => b.CreatedAt).ToList();
+        return View(model);
+    }
     public async Task<IActionResult> Create()
     {
         await LoadHotelsAsync();

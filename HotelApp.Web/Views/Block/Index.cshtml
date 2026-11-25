@@ -1,18 +1,13 @@
-﻿@model List<HotelApp.DAL.Models.Block>
+﻿@model HotelApp.Web.Models.BlockIndexViewModel
 @{
     ViewData["Title"] = "Bloques";
-    var hotels = (Dictionary<Guid, string>)ViewBag.HotelNames;
 }
 
-<h1>Bloques</h1>
+<h1>Bloques@(Model.HotelName is not null ? " de " + Model.HotelName : "")</h1>
 
-@if (TempData["Ok"] is string ok)
+@if (Model.Error is not null)
 {
-    <div class="alert alert-success">@ok</div>
-}
-@if (TempData["Error"] is string error)
-{
-    <div class="alert alert-danger">@error</div>
+    <div class="alert alert-danger">@Model.Error</div>
 }
 
 <p><a asp-action="Create" class="btn btn-primary">Nuevo bloque</a></p>
@@ -27,11 +22,11 @@
         </tr>
     </thead>
     <tbody>
-        @foreach (var item in Model)
+        @foreach (var item in Model.Items)
         {
             <tr>
                 <td>@item.Name</td>
-                <td>@hotels.GetValueOrDefault(item.HotelId, "-")</td>
+                <td>@Model.HotelNames.GetValueOrDefault(item.HotelId, "-")</td>
                 <td>@(item.IsActive ? "Sí" : "No")</td>
                 <td class="text-end">
                     <a asp-action="Edit" asp-route-id="@item.Id" class="btn btn-sm btn-outline-secondary">Editar</a>
