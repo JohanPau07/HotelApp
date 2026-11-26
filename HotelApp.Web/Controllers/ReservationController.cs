@@ -1,10 +1,11 @@
-﻿using HotelApp.BL.Interfaces;
+﻿using HotelApp.BL.Dtos;
+using HotelApp.BL.Dtos.Guest;
+using HotelApp.BL.Dtos.Reservation;
+using HotelApp.BL.Interfaces;
 using HotelApp.DAL.Models;
 using HotelApp.Web.Models;
 using Microsoft.AspNetCore.Mvc;
-using HotelApp.BL.Dtos.Guest;
-using HotelApp.BL.Dtos.Reservation;
-using HotelApp.BL.Dtos;
+using static HotelApp.Web.Models.ReservationFormViewModel;
 
 namespace HotelApp.Web.Controllers;
 
@@ -188,7 +189,64 @@ public class ReservationController : Controller
 
         return RedirectToAction(nameof(Index), new { filter });
     }
+    public async Task<IActionResult> Edit(Guid id, string filter = "todas")
+    {
+        var result = await _reservationService.GetByIdAsync(id);
+        if (!result.Success || result.Data is not Reservation reservation || reservation.Status is 3 or 4)
+            return RedirectToAction(nameof(Index), new { filter });
 
+        var guest = (await _guestService.GetByIdAsync(reservation.GuestId)).Data as Guest;
+
+        return View(new ReservationEditViewModel
+        {
+            Id = reservation.Id,
+            RoomId = reservation.RoomId,
+            CheckIn = reservation.CheckIn,
+            CheckOut = reservation.CheckOut,
+            GuestCount = reservation.GuestCount,
+            GuestName = guest is null ? "-" : $"{guest.FirstName} {guest.LastName}",
+            Filter = filter,
+            Rooms = await GetRoomOptionsAsync()
+        });
+    }
+
+    [HttpPost, ValidateAntiForgeryToken]
+    public async Task<IActionResult> Edit(ReservationEditViewModel model)
+    {
+        var current = await _reservationService.GetByIdAsync(model.Id);
+        if (!current.Success || current.Data is not Reservation reservation)
+            return RedirectToAction(nameof(Index), new { filter = model.Filter });
+
+        var roomResult = await _roomService.GetByIdAsync(model.RoomId);
+        if (!roomResult.Success || roomResult.Data is not Room room)
+            return await ShowEditFormAsync(model, "Selecciona una habitación.");
+
+        var nights = Math.Max(0, model.CheckOut.DayNumber - model.CheckIn.DayNumber);
+
+        var result = await _reservationService.UpdateAsync(new UpdateReservationDto
+        {
+            Id = reservation.Id,
+            RoomId = room.Id,
+            GuestId = reservation.GuestId,
+            CheckIn = model.CheckIn,
+            CheckOut = model.CheckOut,
+            GuestCount = model.GuestCount,
+            TotalPrice = nights * room.Rate,
+            Status = reservation.Status
+        });
+
+        if (!result.Success)
+            return await ShowEditFormAsync(model, result.Message);
+
+        return RedirectToAction(nameof(Index), new { filter = model.Filter });
+    }
+
+    private async Task<IActionResult> ShowEditFormAsync(ReservationEditViewModel model, string error)
+    {
+        model.Rooms = await GetRoomOptionsAsync();
+        model.Error = error;
+        return View(model);
+    }
     private async Task<IActionResult> ShowFormAsync(ReservationFormViewModel model, string error)
     {
         model.Rooms = await GetRoomOptionsAsync();

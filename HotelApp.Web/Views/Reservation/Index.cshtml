@@ -56,6 +56,7 @@
                 <td class="text-end">
                     @if (item.StatusCode is 0 or 1 or 2)
                     {
+                        <a asp-action="Edit" asp-route-id="@item.Id" asp-route-filter="@Model.Filter" class="btn btn-sm btn-outline-secondary">Editar</a>
                         <form asp-action="Cancel" asp-route-id="@item.Id" asp-route-filter="@Model.Filter" method="post" class="d-inline"
                               onsubmit="return confirm('¿Cancelar esta reserva?');">
                             <button type="submit" class="btn btn-sm btn-outline-warning">Cancelar</button>

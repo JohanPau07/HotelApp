@@ -46,3 +46,17 @@ public class ReservationFormViewModel
     public List<RoomOptionViewModel> Rooms { get; set; } = new();
     public string? Error { get; set; }
 }
+public class ReservationEditViewModel
+    {
+        public Guid Id { get; set; }
+        public Guid RoomId { get; set; }
+        public DateOnly CheckIn { get; set; }
+        public DateOnly CheckOut { get; set; }
+        public int GuestCount { get; set; } = 1;
+
+        public string GuestName { get; set; } = "";
+        public string Filter { get; set; } = "todas";
+
+        public List<RoomOptionViewModel> Rooms { get; set; } = new();
+        public string? Error { get; set; }
+    }

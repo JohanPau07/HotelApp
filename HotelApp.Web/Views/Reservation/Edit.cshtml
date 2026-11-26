@@ -1,0 +1,78 @@
+﻿@model HotelApp.Web.Models.ReservationEditViewModel
+@{
+    ViewData["Title"] = "Editar reserva";
+}
+
+<h1>Editar reserva</h1>
+
+@if (Model.Error is not null)
+{
+    <div class="alert alert-danger">@Model.Error</div>
+}
+
+<form asp-action="Edit" method="post">
+    <input type="hidden" asp-for="Id" />
+    <input type="hidden" asp-for="Filter" />
+    <input type="hidden" asp-for="GuestName" />
+
+    <p><strong>Huésped titular:</strong> @Model.GuestName</p>
+
+    <div class="mb-3">
+        <label asp-for="RoomId" class="form-label">Habitación</label>
+        <select asp-for="RoomId" class="form-select">
+            <option value="">-- Seleccione una habitación --</option>
+            @foreach (var r in Model.Rooms)
+            {
+                <option value="@r.Id"
+                        data-rate="@r.Rate.ToString(System.Globalization.CultureInfo.InvariantCulture)"
+                        data-capacity="@r.Capacity">@r.Label</option>
+            }
+        </select>
+    </div>
+
+    <div class="row">
+        <div class="col-md-4 mb-3">
+            <label asp-for="CheckIn" class="form-label">Entrada</label>
+            <input asp-for="CheckIn" type="date" class="form-control" />
+        </div>
+        <div class="col-md-4 mb-3">
+            <label asp-for="CheckOut" class="form-label">Salida</label>
+            <input asp-for="CheckOut" type="date" class="form-control" />
+        </div>
+        <div class="col-md-4 mb-3">
+            <label asp-for="GuestCount" class="form-label">Cantidad de personas</label>
+            <input asp-for="GuestCount" type="number" min="1" class="form-control" />
+        </div>
+    </div>
+
+    <p id="resumen" class="text-muted"></p>
+
+    <button type="submit" class="btn btn-primary">Guardar cambios</button>
+    <a asp-action="Index" asp-route-filter="@Model.Filter" class="btn btn-secondary">Cancelar</a>
+</form>
+
+<script>
+    (function () {
+        var room = document.getElementById('RoomId');
+        var checkIn = document.getElementById('CheckIn');
+        var checkOut = document.getElementById('CheckOut');
+        var info = document.getElementById('resumen');
+
+        function update() {
+            var opt = room.options[room.selectedIndex];
+            if (!opt || !opt.value) { info.textContent = ''; return; }
+
+            var capacity = parseInt(opt.dataset.capacity);
+            var rate = parseFloat(opt.dataset.rate);
+            var nights = Math.round((new Date(checkOut.value) - new Date(checkIn.value)) / 86400000);
+
+            var text = 'Capacidad máxima: ' + capacity + ' personas.';
+            if (nights > 0)
+                text += ' ' + nights + ' noche(s) x ' + rate.toFixed(2) + ' = total ' + (nights * rate).toFixed(2);
+            info.textContent = text;
+        }
+
+        [room, checkIn, checkOut].forEach(function (e) { e.addEventListener('change', update); });
+        update();
+    })();
+</script>
