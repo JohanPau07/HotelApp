@@ -61,6 +61,10 @@
                             <button type="submit" class="btn btn-sm btn-outline-warning">Cancelar</button>
                         </form>
                     }
+                    <form asp-action="Delete" asp-route-id="@item.Id" asp-route-filter="@Model.Filter" method="post" class="d-inline"
+                          onsubmit="return confirm('¿Eliminar esta reserva definitivamente? Esta acción no se puede deshacer.');">
+                        <button type="submit" class="btn btn-sm btn-outline-danger">Eliminar</button>
+                    </form>
                 </td>
             </tr>
         }

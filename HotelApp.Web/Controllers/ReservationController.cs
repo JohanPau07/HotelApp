@@ -4,6 +4,7 @@ using HotelApp.Web.Models;
 using Microsoft.AspNetCore.Mvc;
 using HotelApp.BL.Dtos.Guest;
 using HotelApp.BL.Dtos.Reservation;
+using HotelApp.BL.Dtos;
 
 namespace HotelApp.Web.Controllers;
 
@@ -172,6 +173,16 @@ public class ReservationController : Controller
             Status = 4 // Cancelada
         });
 
+        if (!result.Success)
+            return View(nameof(Index), await BuildIndexModelAsync(filter, result.Message));
+
+        return RedirectToAction(nameof(Index), new { filter });
+    }
+
+    [HttpPost, ValidateAntiForgeryToken]
+    public async Task<IActionResult> Delete(Guid id, string filter = "todas")
+    {
+        var result = await _reservationService.RemoveAsync(new RemoveDto { Id = id });
         if (!result.Success)
             return View(nameof(Index), await BuildIndexModelAsync(filter, result.Message));
 
