@@ -1,21 +1,21 @@
-﻿@model HotelApp.DAL.Models.Base.RoomTypeBase
+﻿@model HotelApp.Web.Models.RoomTypeFormViewModel
 
-<div asp-validation-summary="ModelOnly" class="text-danger"></div>
+@if (Model.Error is not null)
+{
+    <div class="alert alert-danger">@Model.Error</div>
+}
 
 <div class="mb-3">
     <label asp-for="Name" class="form-label">Nombre</label>
     <input asp-for="Name" class="form-control" />
-    <span asp-validation-for="Name" class="text-danger"></span>
 </div>
 
 <div class="mb-3">
     <label asp-for="BaseRate" class="form-label">Tarifa base</label>
     <input asp-for="BaseRate" type="number" step="0.01" class="form-control" />
-    <span asp-validation-for="BaseRate" class="text-danger"></span>
 </div>
 
 <div class="mb-3">
     <label asp-for="Capacity" class="form-label">Capacidad (personas)</label>
     <input asp-for="Capacity" type="number" min="1" class="form-control" />
-    <span asp-validation-for="Capacity" class="text-danger"></span>
 </div>

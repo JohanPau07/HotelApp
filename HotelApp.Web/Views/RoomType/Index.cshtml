@@ -1,17 +1,13 @@
-﻿@model List<HotelApp.DAL.Models.RoomType>
+﻿@model HotelApp.Web.Models.RoomTypeIndexViewModel
 @{
     ViewData["Title"] = "Tipos de habitación";
 }
 
 <h1>Tipos de habitación</h1>
 
-@if (TempData["Ok"] is string ok)
+@if (Model.Error is not null)
 {
-    <div class="alert alert-success">@ok</div>
-}
-@if (TempData["Error"] is string error)
-{
-    <div class="alert alert-danger">@error</div>
+    <div class="alert alert-danger">@Model.Error</div>
 }
 
 <p><a asp-action="Create" class="btn btn-primary">Nuevo tipo</a></p>
@@ -26,7 +22,7 @@
         </tr>
     </thead>
     <tbody>
-        @foreach (var item in Model)
+        @foreach (var item in Model.Items)
         {
             <tr>
                 <td>@item.Name</td>

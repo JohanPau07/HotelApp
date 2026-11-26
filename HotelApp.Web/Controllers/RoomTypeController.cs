@@ -2,6 +2,7 @@
 using HotelApp.BL.Dtos.RoomType;
 using HotelApp.BL.Interfaces;
 using HotelApp.DAL.Models;
+using HotelApp.Web.Models;
 using Microsoft.AspNetCore.Mvc;
 
 namespace HotelApp.Web.Controllers;
@@ -12,33 +13,26 @@ public class RoomTypeController : Controller
 
     public RoomTypeController(IRoomTypeService roomTypeService) => _roomTypeService = roomTypeService;
 
-    public async Task<IActionResult> Index()
-    {
-        var result = await _roomTypeService.GetAllAsync();
-        if (!result.Success)
-        {
-            TempData["Error"] = result.Message;
-            return View(new List<RoomType>());
-        }
-        var roomTypes = result.Data as List<RoomType> ?? new List<RoomType>();
-        return View(roomTypes.OrderByDescending(t => t.CreatedAt).ToList());
-    }
+    public async Task<IActionResult> Index() => View(await BuildIndexModelAsync(null));
 
-    public IActionResult Create() => View(new SaveRoomTypeDto());
+    public IActionResult Create() => View(new RoomTypeFormViewModel());
 
     [HttpPost, ValidateAntiForgeryToken]
-    public async Task<IActionResult> Create(SaveRoomTypeDto dto)
+    public async Task<IActionResult> Create(RoomTypeFormViewModel model)
     {
-        if (!ModelState.IsValid) return View(dto);
+        var result = await _roomTypeService.SaveAsync(new SaveRoomTypeDto
+        {
+            Name = model.Name,
+            BaseRate = model.BaseRate,
+            Capacity = model.Capacity
+        });
 
-        var result = await _roomTypeService.SaveAsync(dto);
         if (!result.Success)
         {
-            ModelState.AddModelError(string.Empty, result.Message);
-            return View(dto);
+            model.Error = result.Message;
+            return View(model);
         }
 
-        TempData["Ok"] = result.Message;
         return RedirectToAction(nameof(Index));
     }
 
@@ -46,12 +40,9 @@ public class RoomTypeController : Controller
     {
         var result = await _roomTypeService.GetByIdAsync(id);
         if (!result.Success || result.Data is not RoomType roomType)
-        {
-            TempData["Error"] = result.Message;
             return RedirectToAction(nameof(Index));
-        }
 
-        return View(new UpdateRoomTypeDto
+        return View(new RoomTypeFormViewModel
         {
             Id = roomType.Id,
             Name = roomType.Name,
@@ -61,18 +52,22 @@ public class RoomTypeController : Controller
     }
 
     [HttpPost, ValidateAntiForgeryToken]
-    public async Task<IActionResult> Edit(UpdateRoomTypeDto dto)
+    public async Task<IActionResult> Edit(RoomTypeFormViewModel model)
     {
-        if (!ModelState.IsValid) return View(dto);
+        var result = await _roomTypeService.UpdateAsync(new UpdateRoomTypeDto
+        {
+            Id = model.Id ?? Guid.Empty,
+            Name = model.Name,
+            BaseRate = model.BaseRate,
+            Capacity = model.Capacity
+        });
 
-        var result = await _roomTypeService.UpdateAsync(dto);
         if (!result.Success)
         {
-            ModelState.AddModelError(string.Empty, result.Message);
-            return View(dto);
+            model.Error = result.Message;
+            return View(model);
         }
 
-        TempData["Ok"] = result.Message;
         return RedirectToAction(nameof(Index));
     }
 
@@ -80,7 +75,25 @@ public class RoomTypeController : Controller
     public async Task<IActionResult> Delete(Guid id)
     {
         var result = await _roomTypeService.RemoveAsync(new RemoveDto { Id = id });
-        TempData[result.Success ? "Ok" : "Error"] = result.Message;
+        if (!result.Success)
+            return View(nameof(Index), await BuildIndexModelAsync(result.Message));
+
         return RedirectToAction(nameof(Index));
+    }
+
+    private async Task<RoomTypeIndexViewModel> BuildIndexModelAsync(string? error)
+    {
+        var model = new RoomTypeIndexViewModel { Error = error };
+
+        var result = await _roomTypeService.GetAllAsync();
+        if (!result.Success)
+        {
+            model.Error ??= result.Message;
+            return model;
+        }
+
+        var roomTypes = result.Data as List<RoomType> ?? new List<RoomType>();
+        model.Items = roomTypes.OrderByDescending(t => t.CreatedAt).ToList();
+        return model;
     }
 }
