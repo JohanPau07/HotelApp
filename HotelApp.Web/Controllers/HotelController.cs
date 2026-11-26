@@ -2,6 +2,7 @@
 using HotelApp.BL.Dtos.Hotel;
 using HotelApp.BL.Interfaces;
 using HotelApp.DAL.Models;
+using HotelApp.Web.Models;
 using Microsoft.AspNetCore.Mvc;
 
 namespace HotelApp.Web.Controllers;
@@ -12,33 +13,29 @@ public class HotelController : Controller
 
     public HotelController(IHotelService hotelService) => _hotelService = hotelService;
 
-    public async Task<IActionResult> Index()
-    {
-        var result = await _hotelService.GetAllAsync();
-        if (!result.Success)
-        {
-            TempData["Error"] = result.Message;
-            return View(new List<Hotel>());
-        }
-        var hotels = result.Data as List<Hotel> ?? new List<Hotel>();
-        return View(hotels.OrderByDescending(h => h.CreatedAt).ToList());
-    }
+    public async Task<IActionResult> Index() => View(await BuildIndexModelAsync(null));
 
-    public IActionResult Create() => View(new SaveHotelDto());
+    public IActionResult Create() => View(new HotelFormViewModel());
 
     [HttpPost, ValidateAntiForgeryToken]
-    public async Task<IActionResult> Create(SaveHotelDto dto)
+    public async Task<IActionResult> Create(HotelFormViewModel model)
     {
-        if (!ModelState.IsValid) return View(dto);
+        var result = await _hotelService.SaveAsync(new SaveHotelDto
+        {
+            Name = model.Name,
+            Address = model.Address,
+            IsActive = model.IsActive,
+            Stars = model.Stars,
+            Description = model.Description,
+            Services = model.Services
+        });
 
-        var result = await _hotelService.SaveAsync(dto);
         if (!result.Success)
         {
-            ModelState.AddModelError(string.Empty, result.Message);
-            return View(dto);
+            model.Error = result.Message;
+            return View(model);
         }
 
-        TempData["Ok"] = result.Message;
         return RedirectToAction(nameof(Index));
     }
 
@@ -46,12 +43,9 @@ public class HotelController : Controller
     {
         var result = await _hotelService.GetByIdAsync(id);
         if (!result.Success || result.Data is not Hotel hotel)
-        {
-            TempData["Error"] = result.Message;
             return RedirectToAction(nameof(Index));
-        }
 
-        return View(new UpdateHotelDto
+        return View(new HotelFormViewModel
         {
             Id = hotel.Id,
             Name = hotel.Name,
@@ -64,18 +58,25 @@ public class HotelController : Controller
     }
 
     [HttpPost, ValidateAntiForgeryToken]
-    public async Task<IActionResult> Edit(UpdateHotelDto dto)
+    public async Task<IActionResult> Edit(HotelFormViewModel model)
     {
-        if (!ModelState.IsValid) return View(dto);
+        var result = await _hotelService.UpdateAsync(new UpdateHotelDto
+        {
+            Id = model.Id ?? Guid.Empty,
+            Name = model.Name,
+            Address = model.Address,
+            IsActive = model.IsActive,
+            Stars = model.Stars,
+            Description = model.Description,
+            Services = model.Services
+        });
 
-        var result = await _hotelService.UpdateAsync(dto);
         if (!result.Success)
         {
-            ModelState.AddModelError(string.Empty, result.Message);
-            return View(dto);
+            model.Error = result.Message;
+            return View(model);
         }
 
-        TempData["Ok"] = result.Message;
         return RedirectToAction(nameof(Index));
     }
 
@@ -83,7 +84,25 @@ public class HotelController : Controller
     public async Task<IActionResult> Delete(Guid id)
     {
         var result = await _hotelService.RemoveAsync(new RemoveDto { Id = id });
-        TempData[result.Success ? "Ok" : "Error"] = result.Message;
+        if (!result.Success)
+            return View(nameof(Index), await BuildIndexModelAsync(result.Message));
+
         return RedirectToAction(nameof(Index));
+    }
+
+    private async Task<HotelIndexViewModel> BuildIndexModelAsync(string? error)
+    {
+        var model = new HotelIndexViewModel { Error = error };
+
+        var result = await _hotelService.GetAllAsync();
+        if (!result.Success)
+        {
+            model.Error ??= result.Message;
+            return model;
+        }
+
+        var hotels = result.Data as List<Hotel> ?? new List<Hotel>();
+        model.Items = hotels.OrderByDescending(h => h.CreatedAt).ToList();
+        return model;
     }
 }
