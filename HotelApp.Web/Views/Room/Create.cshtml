@@ -1,4 +1,4 @@
-﻿@model HotelApp.BL.Dtos.Room.SaveRoomDto
+﻿@model HotelApp.Web.Models.RoomFormViewModel
 @{
     ViewData["Title"] = "Nueva habitación";
 }
@@ -8,5 +8,5 @@
 <form asp-action="Create" method="post">
     <partial name="_Form" model="Model" />
     <button type="submit" class="btn btn-primary">Guardar</button>
-    <a asp-action="Index" class="btn btn-secondary">Cancelar</a>
+    <a asp-action="Index" asp-route-floorId="@Model.ReturnFloorId" class="btn btn-secondary">Cancelar</a>
 </form>

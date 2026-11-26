@@ -1,4 +1,4 @@
-﻿@model HotelApp.BL.Dtos.Room.UpdateRoomDto
+﻿@model HotelApp.Web.Models.RoomFormViewModel
 @{
     ViewData["Title"] = "Editar habitación";
 }
@@ -9,5 +9,5 @@
     <input type="hidden" asp-for="Id" />
     <partial name="_Form" model="Model" />
     <button type="submit" class="btn btn-primary">Guardar cambios</button>
-    <a asp-action="Index" class="btn btn-secondary">Cancelar</a>
+    <a asp-action="Index" asp-route-floorId="@Model.ReturnFloorId" class="btn btn-secondary">Cancelar</a>
 </form>

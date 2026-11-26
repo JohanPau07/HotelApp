@@ -31,6 +31,7 @@
                 <td>@(item.BlockId is Guid blockId ? Model.BlockNames.GetValueOrDefault(blockId, "-") : "-")</td>
                 <td>@(item.IsActive ? "Sí" : "No")</td>
                 <td class="text-end">
+                    <a asp-controller="Room" asp-action="Index" asp-route-floorId="@item.Id" class="btn btn-sm btn-outline-primary">Habitaciones</a>
                     <a asp-action="Edit" asp-route-id="@item.Id" asp-route-returnBlockId="@Model.BlockId" class="btn btn-sm btn-outline-secondary">Editar</a>
                     <form asp-action="Delete" asp-route-id="@item.Id" asp-route-blockId="@Model.BlockId" method="post" class="d-inline"
                           onsubmit="return confirm('¿Eliminar este piso?');">
