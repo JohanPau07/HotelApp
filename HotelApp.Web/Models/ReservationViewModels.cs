@@ -11,6 +11,7 @@ public class ReservationRowViewModel
     public int GuestCount { get; set; }
     public decimal TotalPrice { get; set; }
     public string Status { get; set; } = "";
+    public byte StatusCode { get; set; }
 }
 
 public class ReservationIndexViewModel

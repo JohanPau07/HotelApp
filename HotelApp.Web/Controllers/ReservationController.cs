@@ -35,14 +35,17 @@ public class ReservationController : Controller
     }
 
     public async Task<IActionResult> Index(string filter = "todas")
+      => View(await BuildIndexModelAsync(filter, null));
+
+    private async Task<ReservationIndexViewModel> BuildIndexModelAsync(string filter, string? error)
     {
-        var model = new ReservationIndexViewModel { Filter = filter };
+        var model = new ReservationIndexViewModel { Filter = filter, Error = error };
 
         var result = await _reservationService.GetAllAsync();
         if (!result.Success)
         {
-            model.Error = result.Message;
-            return View(model);
+            model.Error ??= result.Message;
+            return model;
         }
 
         var reservations = result.Data as List<Reservation> ?? new List<Reservation>();
@@ -87,11 +90,12 @@ public class ReservationController : Controller
                 CheckOut = r.CheckOut,
                 GuestCount = r.GuestCount,
                 TotalPrice = r.TotalPrice,
-                Status = StatusNames.GetValueOrDefault(r.Status, "-")
+                Status = StatusNames.GetValueOrDefault(r.Status, "-"),
+                StatusCode = r.Status
             };
         }).ToList();
 
-        return View(model);
+        return model;
     }
     public async Task<IActionResult> Create()
     {
@@ -147,6 +151,31 @@ public class ReservationController : Controller
             return await ShowFormAsync(model, result.Message);
 
         return RedirectToAction(nameof(Index), new { filter = "nuevas" });
+    }
+
+    [HttpPost, ValidateAntiForgeryToken]
+    public async Task<IActionResult> Cancel(Guid id, string filter = "todas")
+    {
+        var current = await _reservationService.GetByIdAsync(id);
+        if (!current.Success || current.Data is not Reservation reservation)
+            return RedirectToAction(nameof(Index), new { filter });
+
+        var result = await _reservationService.UpdateAsync(new UpdateReservationDto
+        {
+            Id = reservation.Id,
+            RoomId = reservation.RoomId,
+            GuestId = reservation.GuestId,
+            CheckIn = reservation.CheckIn,
+            CheckOut = reservation.CheckOut,
+            GuestCount = reservation.GuestCount,
+            TotalPrice = reservation.TotalPrice,
+            Status = 4 // Cancelada
+        });
+
+        if (!result.Success)
+            return View(nameof(Index), await BuildIndexModelAsync(filter, result.Message));
+
+        return RedirectToAction(nameof(Index), new { filter });
     }
 
     private async Task<IActionResult> ShowFormAsync(ReservationFormViewModel model, string error)
