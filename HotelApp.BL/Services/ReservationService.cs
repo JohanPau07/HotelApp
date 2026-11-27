@@ -44,7 +44,7 @@ public class ReservationService : BaseService<Reservation, SaveReservationDto, U
             CheckIn = dto.CheckIn,
             CheckOut = dto.CheckOut,
             GuestCount = dto.GuestCount,
-            TotalPrice = dto.TotalPrice,
+            TotalPrice = await CalculateTotalAsync(dto),
             Status = dto.Status
         });
     }
@@ -58,19 +58,24 @@ public class ReservationService : BaseService<Reservation, SaveReservationDto, U
         var current = await _reservationRepository.GetByIdAsync(dto.Id);
         if (!current.Success) return current;
 
-        if (current.Data is Reservation existing &&
-            (existing.Status == Completed || existing.Status == Cancelled))
+        var existing = current.Data as Reservation;
+        if (existing is not null && (existing.Status == Completed || existing.Status == Cancelled))
             return OperationResult.Fail("Una reserva completada o cancelada no puede modificarse.");
 
         var capacityError = await ValidateCapacityAsync(dto);
         if (capacityError != null) return capacityError;
 
-        // Al cancelar no se revisa la disponibilidad: cancelar siempre debe ser posible
-        if (dto.Status != Cancelled)
+        
+        var isCancelling = dto.Status == Cancelled;
+        if (!isCancelling)
         {
             var availabilityError = await ValidateAvailabilityAsync(dto, dto.Id);
             if (availabilityError != null) return availabilityError;
         }
+
+        var totalPrice = isCancelling && existing is not null
+            ? existing.TotalPrice
+            : await CalculateTotalAsync(dto);
 
         return await _reservationRepository.UpdateAsync(new ReservationUpdate
         {
@@ -80,7 +85,7 @@ public class ReservationService : BaseService<Reservation, SaveReservationDto, U
             CheckIn = dto.CheckIn,
             CheckOut = dto.CheckOut,
             GuestCount = dto.GuestCount,
-            TotalPrice = dto.TotalPrice,
+            TotalPrice = totalPrice,
             Status = dto.Status
         });
     }
@@ -109,6 +114,16 @@ public class ReservationService : BaseService<Reservation, SaveReservationDto, U
         return null;
     }
 
+    // noches x tarifa de la habitación
+    private async Task<decimal> CalculateTotalAsync(ReservationBase dto)
+    {
+        var roomResult = await _roomRepository.GetByIdAsync(dto.RoomId);
+        if (roomResult.Data is not Room room) return 0;
+
+        var nights = dto.CheckOut.DayNumber - dto.CheckIn.DayNumber;
+        return nights * room.Rate;
+    }
+
     private static OperationResult? Validate(ReservationBase dto)
     {
         if (dto.RoomId == Guid.Empty)
@@ -119,8 +134,6 @@ public class ReservationService : BaseService<Reservation, SaveReservationDto, U
             return OperationResult.Fail("La fecha de salida debe ser posterior a la de entrada.");
         if (dto.GuestCount <= 0)
             return OperationResult.Fail("La cantidad de huéspedes debe ser mayor que cero.");
-        if (dto.TotalPrice < 0)
-            return OperationResult.Fail("El precio total no puede ser negativo.");
         if (dto.Status > 4)
             return OperationResult.Fail("El estado de la reserva no es válido.");
         return null;
