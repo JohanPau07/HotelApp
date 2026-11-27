@@ -64,9 +64,6 @@ public class FloorController : Controller
     [HttpPost, ValidateAntiForgeryToken]
     public async Task<IActionResult> Create(FloorFormViewModel model)
     {
-        var error = await ValidateBlockAsync(model.BlockId, model.HotelId);
-        if (error is not null)
-            return await ShowFormAsync(model, error);
 
         var result = await _floorService.SaveAsync(new SaveFloorDto
         {
@@ -105,9 +102,6 @@ public class FloorController : Controller
     [HttpPost, ValidateAntiForgeryToken]
     public async Task<IActionResult> Edit(FloorFormViewModel model)
     {
-        var error = await ValidateBlockAsync(model.BlockId, model.HotelId);
-        if (error is not null)
-            return await ShowFormAsync(model, error);
 
         var result = await _floorService.UpdateAsync(new UpdateFloorDto
         {
@@ -165,19 +159,7 @@ public class FloorController : Controller
             .ToList();
     }
 
-    private async Task<string?> ValidateBlockAsync(Guid? blockId, Guid hotelId)
-    {
-        if (blockId is null) return null;
 
-        var result = await _blockService.GetByIdAsync(blockId.Value);
-        if (!result.Success || result.Data is not Block block)
-            return "El bloque seleccionado no existe.";
-
-        if (block.HotelId != hotelId)
-            return "El bloque no pertenece al hotel seleccionado.";
-
-        return null;
-    }
 
     private async Task<IActionResult> ShowFormAsync(FloorFormViewModel model, string error)
     {
