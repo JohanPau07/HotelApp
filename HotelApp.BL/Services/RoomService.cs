@@ -18,12 +18,15 @@ public class RoomService : BaseService<Room, SaveRoomDto, UpdateRoomDto>, IRoomS
         _roomRepository = repository;
     }
 
-    public override Task<OperationResult> SaveAsync(SaveRoomDto dto)
+    public override async Task<OperationResult> SaveAsync(SaveRoomDto dto)
     {
         var error = Validate(dto);
-        if (error != null) return Task.FromResult(error);
+        if (error != null) return error;
 
-        return _roomRepository.AddAsync(new RoomAdd
+        var duplicateError = await ValidateDuplicateAsync(dto, null);
+        if (duplicateError != null) return duplicateError;
+
+        return await _roomRepository.AddAsync(new RoomAdd
         {
             FloorId = dto.FloorId,
             RoomTypeId = dto.RoomTypeId,
@@ -36,12 +39,15 @@ public class RoomService : BaseService<Room, SaveRoomDto, UpdateRoomDto>, IRoomS
         });
     }
 
-    public override Task<OperationResult> UpdateAsync(UpdateRoomDto dto)
+    public override async Task<OperationResult> UpdateAsync(UpdateRoomDto dto)
     {
         var error = Validate(dto);
-        if (error != null) return Task.FromResult(error);
+        if (error != null) return error;
 
-        return _roomRepository.UpdateAsync(new RoomUpdate
+        var duplicateError = await ValidateDuplicateAsync(dto, dto.Id);
+        if (duplicateError != null) return duplicateError;
+
+        return await _roomRepository.UpdateAsync(new RoomUpdate
         {
             Id = dto.Id,
             FloorId = dto.FloorId,
@@ -53,6 +59,19 @@ public class RoomService : BaseService<Room, SaveRoomDto, UpdateRoomDto>, IRoomS
             IsActive = dto.IsActive,
             Description = dto.Description?.Trim()
         });
+    }
+
+    // RN: no puede haber dos habitaciones activas con el mismo número en el mismo piso
+    private async Task<OperationResult?> ValidateDuplicateAsync(RoomBase dto, Guid? excludeId)
+    {
+        if (!dto.IsActive) return null;
+
+        var number = dto.Number.Trim();
+        var exists = await _roomRepository.ExistsActiveAsync(dto.FloorId, number, excludeId);
+        if (!exists) return null;
+
+        return OperationResult.Fail(
+            $"La habitación {number} ya existe en este piso. Usa otro número o desactiva la habitación existente.");
     }
 
     private static OperationResult? Validate(RoomBase dto)

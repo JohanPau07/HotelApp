@@ -13,9 +13,6 @@ public class RoomRepository : BaseRepository<Room>, IRoomRepository
 
     public async Task<OperationResult> AddAsync(RoomAdd model)
     {
-        if (model.IsActive && await _context.Rooms.AnyAsync(r => r.FloorId == model.FloorId && r.Number == model.Number && r.IsActive))
-            return OperationResult.Fail($"La habitación {model.Number} ya existe en este piso. Usa otro número.");
-
         var room = new Room
         {
             FloorId = model.FloorId,
@@ -36,9 +33,6 @@ public class RoomRepository : BaseRepository<Room>, IRoomRepository
         var room = await _context.Rooms.FindAsync(model.Id);
         if (room is null) return OperationResult.Fail("Habitación no encontrada");
 
-        if (model.IsActive && await _context.Rooms.AnyAsync(r => r.FloorId == model.FloorId && r.Number == model.Number && r.IsActive && r.Id != model.Id))
-            return OperationResult.Fail($"La habitación {model.Number} ya existe en este piso. Usa otro número.");
-
         room.FloorId = model.FloorId;
         room.RoomTypeId = model.RoomTypeId;
         room.Number = model.Number;
@@ -48,5 +42,14 @@ public class RoomRepository : BaseRepository<Room>, IRoomRepository
         room.IsActive = model.IsActive;
         room.Description = model.Description;
         return await SaveAsync("Habitación actualizada", room);
+    }
+
+    public async Task<bool> ExistsActiveAsync(Guid floorId, string number, Guid? excludeId = null)
+    {
+        return await _context.Rooms.AnyAsync(r =>
+            r.IsActive
+            && r.FloorId == floorId
+            && r.Number == number
+            && (excludeId == null || r.Id != excludeId));
     }
 }

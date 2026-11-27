@@ -8,4 +8,6 @@ public interface IRoomRepository : IBaseRepository<Room>
 {
     Task<OperationResult> AddAsync(RoomAdd model);
     Task<OperationResult> UpdateAsync(RoomUpdate model);
+
+    Task<bool> ExistsActiveAsync(Guid floorId, string number, Guid? excludeId = null);
 }
