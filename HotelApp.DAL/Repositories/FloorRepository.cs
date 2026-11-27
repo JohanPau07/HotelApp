@@ -3,6 +3,7 @@ using HotelApp.DAL.Interfaces;
 using HotelApp.DAL.Models;
 using HotelApp.DAL.Models.Objects.Floor;
 using HotelApp.DAL.Models.Result;
+using Microsoft.EntityFrameworkCore;
 
 namespace HotelApp.DAL.Repositories;
 
@@ -33,5 +34,14 @@ public class FloorRepository : BaseRepository<Floor>, IFloorRepository
         floor.Number = model.Number;
         floor.IsActive = model.IsActive;
         return await SaveAsync("Piso actualizado", floor);
+    }
+    public async Task<bool> ExistsActiveAsync(Guid hotelId, Guid? blockId, int number, Guid? excludeId = null)
+    {
+        return await _context.Floors.AnyAsync(f =>
+            f.IsActive
+            && f.HotelId == hotelId
+            && f.BlockId == blockId
+            && f.Number == number
+            && (excludeId == null || f.Id != excludeId));
     }
 }

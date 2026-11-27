@@ -8,4 +8,6 @@ public interface IFloorRepository : IBaseRepository<Floor>
 {
     Task<OperationResult> AddAsync(FloorAdd model);
     Task<OperationResult> UpdateAsync(FloorUpdate model);
+
+    Task<bool> ExistsActiveAsync(Guid hotelId, Guid? blockId, int number, Guid? excludeId = null);
 }

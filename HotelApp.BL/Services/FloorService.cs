@@ -28,6 +28,9 @@ public class FloorService : BaseService<Floor, SaveFloorDto, UpdateFloorDto>, IF
         var blockError = await ValidateBlockAsync(dto);
         if (blockError != null) return blockError;
 
+        var duplicateError = await ValidateDuplicateAsync(dto, null);
+        if (duplicateError != null) return duplicateError;
+
         return await _floorRepository.AddAsync(new FloorAdd
         {
             HotelId = dto.HotelId,
@@ -44,6 +47,9 @@ public class FloorService : BaseService<Floor, SaveFloorDto, UpdateFloorDto>, IF
 
         var blockError = await ValidateBlockAsync(dto);
         if (blockError != null) return blockError;
+
+        var duplicateError = await ValidateDuplicateAsync(dto, dto.Id);
+        if (duplicateError != null) return duplicateError;
 
         return await _floorRepository.UpdateAsync(new FloorUpdate
         {
@@ -68,6 +74,19 @@ public class FloorService : BaseService<Floor, SaveFloorDto, UpdateFloorDto>, IF
             return OperationResult.Fail("El bloque no pertenece al hotel seleccionado.");
 
         return null;
+    }
+
+    // RN: no puede haber dos pisos activos con el mismo número en el mismo hotel y bloque
+    private async Task<OperationResult?> ValidateDuplicateAsync(FloorBase dto, Guid? excludeId)
+    {
+        if (!dto.IsActive) return null;
+
+        var exists = await _floorRepository.ExistsActiveAsync(dto.HotelId, dto.BlockId, dto.Number, excludeId);
+        if (!exists) return null;
+
+        var place = dto.BlockId is null ? "en ese hotel (sin bloque)" : "en ese bloque";
+        return OperationResult.Fail(
+            $"Ya existe un piso {dto.Number} activo {place}. Usa otro número o desactiva el piso existente.");
     }
 
     private static OperationResult? Validate(FloorBase dto)
