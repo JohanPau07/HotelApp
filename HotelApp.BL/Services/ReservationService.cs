@@ -34,6 +34,9 @@ public class ReservationService : BaseService<Reservation, SaveReservationDto, U
         var capacityError = await ValidateCapacityAsync(dto);
         if (capacityError != null) return capacityError;
 
+        var availabilityError = await ValidateAvailabilityAsync(dto, null);
+        if (availabilityError != null) return availabilityError;
+
         return await _reservationRepository.AddAsync(new ReservationAdd
         {
             RoomId = dto.RoomId,
@@ -62,6 +65,13 @@ public class ReservationService : BaseService<Reservation, SaveReservationDto, U
         var capacityError = await ValidateCapacityAsync(dto);
         if (capacityError != null) return capacityError;
 
+        // Al cancelar no se revisa la disponibilidad: cancelar siempre debe ser posible
+        if (dto.Status != Cancelled)
+        {
+            var availabilityError = await ValidateAvailabilityAsync(dto, dto.Id);
+            if (availabilityError != null) return availabilityError;
+        }
+
         return await _reservationRepository.UpdateAsync(new ReservationUpdate
         {
             Id = dto.Id,
@@ -85,6 +95,16 @@ public class ReservationService : BaseService<Reservation, SaveReservationDto, U
             return OperationResult.Fail(
                 $"La habitación {room.Number} permite máximo {room.Capacity} personas y se indicaron {dto.GuestCount}. " +
                 "Elige una habitación con mayor capacidad o divide el grupo en más de una habitación.");
+
+        return null;
+    }
+
+    private async Task<OperationResult?> ValidateAvailabilityAsync(ReservationBase dto, Guid? excludeId)
+    {
+        var overlaps = await _reservationRepository.HasOverlapAsync(dto.RoomId, dto.CheckIn, dto.CheckOut, excludeId);
+        if (overlaps)
+            return OperationResult.Fail(
+                "La habitación ya está reservada en esas fechas. Elige otras fechas u otra habitación.");
 
         return null;
     }

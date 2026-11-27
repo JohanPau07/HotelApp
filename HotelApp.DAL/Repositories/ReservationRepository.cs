@@ -3,6 +3,7 @@ using HotelApp.DAL.Interfaces;
 using HotelApp.DAL.Models;
 using HotelApp.DAL.Models.Objects.Reservation;
 using HotelApp.DAL.Models.Result;
+using Microsoft.EntityFrameworkCore;
 
 namespace HotelApp.DAL.Repositories;
 
@@ -41,5 +42,14 @@ public class ReservationRepository : BaseRepository<Reservation>, IReservationRe
         reservation.Status = model.Status;
         reservation.UpdatedAt = DateTime.Now;
         return await SaveAsync("Reserva actualizada", reservation);
+    }
+    public async Task<bool> HasOverlapAsync(Guid roomId, DateOnly checkIn, DateOnly checkOut, Guid? excludeId = null)
+    {
+        return await _context.Reservations.AnyAsync(r =>
+            r.RoomId == roomId
+            && r.Status != 4
+            && (excludeId == null || r.Id != excludeId)
+            && r.CheckIn < checkOut
+            && checkIn < r.CheckOut);
     }
 }

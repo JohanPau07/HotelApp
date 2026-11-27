@@ -8,4 +8,5 @@ public interface IReservationRepository : IBaseRepository<Reservation>
 {
     Task<OperationResult> AddAsync(ReservationAdd model);
     Task<OperationResult> UpdateAsync(ReservationUpdate model);
+    Task<bool> HasOverlapAsync(Guid roomId, DateOnly checkIn, DateOnly checkOut, Guid? excludeId = null);
 }
