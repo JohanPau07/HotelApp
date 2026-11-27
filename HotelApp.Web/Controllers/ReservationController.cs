@@ -5,6 +5,7 @@ using HotelApp.BL.Interfaces;
 using HotelApp.DAL.Models;
 using HotelApp.Web.Models;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.Rendering;
 using static HotelApp.Web.Models.ReservationFormViewModel;
 
 namespace HotelApp.Web.Controllers;
@@ -35,13 +36,12 @@ public class ReservationController : Controller
         _floorService = floorService;
         _hotelService = hotelService;
     }
+    public async Task<IActionResult> Index(string filter = "todas", Guid? hotelId = null)
+    => View(await BuildIndexModelAsync(filter, null, hotelId));
 
-    public async Task<IActionResult> Index(string filter = "todas")
-      => View(await BuildIndexModelAsync(filter, null));
-
-    private async Task<ReservationIndexViewModel> BuildIndexModelAsync(string filter, string? error)
+    private async Task<ReservationIndexViewModel> BuildIndexModelAsync(string filter, string? error, Guid? hotelId = null)
     {
-        var model = new ReservationIndexViewModel { Filter = filter, Error = error };
+        var model = new ReservationIndexViewModel { Filter = filter, HotelId = hotelId, Error = error };
 
         var result = await _reservationService.GetAllAsync();
         if (!result.Success)
@@ -50,8 +50,31 @@ public class ReservationController : Controller
             return model;
         }
 
+        var guests = ((await _guestService.GetAllAsync()).Data as List<Guest> ?? new List<Guest>())
+            .ToDictionary(g => g.Id, g => $"{g.FirstName} {g.LastName}");
+        var hotelList = (await _hotelService.GetAllAsync()).Data as List<Hotel> ?? new List<Hotel>();
+        var hotels = hotelList.ToDictionary(h => h.Id, h => h.Name);
+        var floors = ((await _floorService.GetAllAsync()).Data as List<Floor> ?? new List<Floor>())
+            .ToDictionary(f => f.Id, f => f.HotelId);
+        var rooms = ((await _roomService.GetAllAsync()).Data as List<Room> ?? new List<Room>())
+            .ToDictionary(r => r.Id, r => r);
+
+        model.Hotels = hotelList
+            .OrderBy(h => h.Name)
+            .Select(h => new SelectListItem(h.Name, h.Id.ToString()))
+            .ToList();
+
         var reservations = result.Data as List<Reservation> ?? new List<Reservation>();
         var today = DateOnly.FromDateTime(DateTime.Today);
+
+        if (hotelId.HasValue)
+        {
+            reservations = reservations
+                .Where(r => rooms.TryGetValue(r.RoomId, out var rm)
+                            && floors.TryGetValue(rm.FloorId, out var floorHotelId)
+                            && floorHotelId == hotelId.Value)
+                .ToList();
+        }
 
         reservations = filter switch
         {
@@ -64,21 +87,12 @@ public class ReservationController : Controller
             _ => reservations.OrderByDescending(r => r.CreatedAt).ToList()
         };
 
-        var guests = ((await _guestService.GetAllAsync()).Data as List<Guest> ?? new List<Guest>())
-            .ToDictionary(g => g.Id, g => $"{g.FirstName} {g.LastName}");
-        var hotels = ((await _hotelService.GetAllAsync()).Data as List<Hotel> ?? new List<Hotel>())
-            .ToDictionary(h => h.Id, h => h.Name);
-        var floors = ((await _floorService.GetAllAsync()).Data as List<Floor> ?? new List<Floor>())
-            .ToDictionary(f => f.Id, f => f.HotelId);
-        var rooms = ((await _roomService.GetAllAsync()).Data as List<Room> ?? new List<Room>())
-            .ToDictionary(r => r.Id, r => r);
-
         model.Items = reservations.Select(r =>
         {
             rooms.TryGetValue(r.RoomId, out var room);
             var hotelName = room != null
-                            && floors.TryGetValue(room.FloorId, out var hotelId)
-                            && hotels.TryGetValue(hotelId, out var name)
+                            && floors.TryGetValue(room.FloorId, out var roomHotelId)
+                            && hotels.TryGetValue(roomHotelId, out var name)
                 ? name
                 : "-";
 
@@ -99,6 +113,8 @@ public class ReservationController : Controller
 
         return model;
     }
+  
+    
     public async Task<IActionResult> Create()
     {
         var model = new ReservationFormViewModel { Rooms = await GetRoomOptionsAsync() };
@@ -156,11 +172,11 @@ public class ReservationController : Controller
     }
 
     [HttpPost, ValidateAntiForgeryToken]
-    public async Task<IActionResult> Cancel(Guid id, string filter = "todas")
+    public async Task<IActionResult> Cancel(Guid id, string filter = "todas", Guid? hotelId = null)
     {
         var current = await _reservationService.GetByIdAsync(id);
         if (!current.Success || current.Data is not Reservation reservation)
-            return RedirectToAction(nameof(Index), new { filter });
+            return RedirectToAction(nameof(Index), new { filter, hotelId });
 
         var result = await _reservationService.UpdateAsync(new UpdateReservationDto
         {
@@ -175,25 +191,26 @@ public class ReservationController : Controller
         });
 
         if (!result.Success)
-            return View(nameof(Index), await BuildIndexModelAsync(filter, result.Message));
+            return View(nameof(Index), await BuildIndexModelAsync(filter, result.Message, hotelId));
 
-        return RedirectToAction(nameof(Index), new { filter });
+        return RedirectToAction(nameof(Index), new { filter, hotelId });
     }
 
     [HttpPost, ValidateAntiForgeryToken]
-    public async Task<IActionResult> Delete(Guid id, string filter = "todas")
+    public async Task<IActionResult> Delete(Guid id, string filter = "todas", Guid? hotelId = null)
     {
         var result = await _reservationService.RemoveAsync(new RemoveDto { Id = id });
         if (!result.Success)
-            return View(nameof(Index), await BuildIndexModelAsync(filter, result.Message));
+            return View(nameof(Index), await BuildIndexModelAsync(filter, result.Message, hotelId));
 
-        return RedirectToAction(nameof(Index), new { filter });
+        return RedirectToAction(nameof(Index), new { filter, hotelId });
     }
-    public async Task<IActionResult> Edit(Guid id, string filter = "todas")
+
+    public async Task<IActionResult> Edit(Guid id, string filter = "todas", Guid? hotelId = null)
     {
         var result = await _reservationService.GetByIdAsync(id);
         if (!result.Success || result.Data is not Reservation reservation || reservation.Status is 3 or 4)
-            return RedirectToAction(nameof(Index), new { filter });
+            return RedirectToAction(nameof(Index), new { filter, hotelId });
 
         var guest = (await _guestService.GetByIdAsync(reservation.GuestId)).Data as Guest;
 
@@ -206,6 +223,7 @@ public class ReservationController : Controller
             GuestCount = reservation.GuestCount,
             GuestName = guest is null ? "-" : $"{guest.FirstName} {guest.LastName}",
             Filter = filter,
+            ReturnHotelId = hotelId,
             Rooms = await GetRoomOptionsAsync()
         });
     }
@@ -215,7 +233,7 @@ public class ReservationController : Controller
     {
         var current = await _reservationService.GetByIdAsync(model.Id);
         if (!current.Success || current.Data is not Reservation reservation)
-            return RedirectToAction(nameof(Index), new { filter = model.Filter });
+            return RedirectToAction(nameof(Index), new { filter = model.Filter, hotelId = model.ReturnHotelId });
 
         var roomResult = await _roomService.GetByIdAsync(model.RoomId);
         if (!roomResult.Success || roomResult.Data is not Room room)
@@ -238,7 +256,7 @@ public class ReservationController : Controller
         if (!result.Success)
             return await ShowEditFormAsync(model, result.Message);
 
-        return RedirectToAction(nameof(Index), new { filter = model.Filter });
+        return RedirectToAction(nameof(Index), new { filter = model.Filter, hotelId = model.ReturnHotelId });
     }
 
     private async Task<IActionResult> ShowEditFormAsync(ReservationEditViewModel model, string error)

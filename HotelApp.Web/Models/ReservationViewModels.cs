@@ -1,4 +1,7 @@
-﻿namespace HotelApp.Web.Models;
+﻿
+using Microsoft.AspNetCore.Mvc.Rendering;
+
+namespace HotelApp.Web.Models;
 
 public class ReservationRowViewModel
 {
@@ -19,6 +22,8 @@ public class ReservationIndexViewModel
     public string Filter { get; set; } = "todas";
     public string? Error { get; set; }
     public List<ReservationRowViewModel> Items { get; set; } = new();
+    public Guid? HotelId { get; set; }
+    public List<SelectListItem> Hotels { get; set; } = new();
 }
 
 public class RoomOptionViewModel
@@ -59,4 +64,5 @@ public class ReservationEditViewModel
 
         public List<RoomOptionViewModel> Rooms { get; set; } = new();
         public string? Error { get; set; }
-    }
+        public Guid? ReturnHotelId { get; set; }
+}

@@ -11,18 +11,30 @@
 }
 <p><a asp-action="Create" class="btn btn-primary">Nueva reserva</a></p>
 
+<form asp-action="Index" method="get" class="row g-2 mb-3">
+    <input type="hidden" name="filter" value="@Model.Filter" />
+    <div class="col-auto">
+        <select name="hotelId" class="form-select" onchange="this.form.submit()">
+            <option value="">Todos los hoteles</option>
+            @foreach (var h in Model.Hotels)
+            {
+                <option value="@h.Value" selected="@(Model.HotelId?.ToString() == h.Value)">@h.Text</option>
+            }
+        </select>
+    </div>
+</form>
 <ul class="nav nav-pills mb-3">
     <li class="nav-item">
         <a class="nav-link @(Model.Filter == "todas" ? "active" : "")"
-           asp-action="Index" asp-route-filter="todas">Todas</a>
+           asp-action="Index" asp-route-filter="todas" asp-route-hotelId="@Model.HotelId">Todas</a>
     </li>
     <li class="nav-item">
         <a class="nav-link @(Model.Filter == "proximas" ? "active" : "")"
-           asp-action="Index" asp-route-filter="proximas">Próximas a terminar</a>
+           asp-action="Index" asp-route-filter="proximas" asp-route-hotelId="@Model.HotelId">Próximas a terminar</a>
     </li>
     <li class="nav-item">
         <a class="nav-link @(Model.Filter == "nuevas" ? "active" : "")"
-           asp-action="Index" asp-route-filter="nuevas">Nuevas</a>
+           asp-action="Index" asp-route-filter="nuevas" asp-route-hotelId="@Model.HotelId">Nuevas</a>
     </li>
 </ul>
 
@@ -56,13 +68,13 @@
                 <td class="text-end">
                     @if (item.StatusCode is 0 or 1 or 2)
                     {
-                        <a asp-action="Edit" asp-route-id="@item.Id" asp-route-filter="@Model.Filter" class="btn btn-sm btn-outline-secondary">Editar</a>
-                        <form asp-action="Cancel" asp-route-id="@item.Id" asp-route-filter="@Model.Filter" method="post" class="d-inline"
+                        <a asp-action="Edit" asp-route-id="@item.Id" asp-route-filter="@Model.Filter" asp-route-hotelId="@Model.HotelId" class="btn btn-sm btn-outline-secondary">Editar</a>
+                        <form asp-action="Cancel" asp-route-id="@item.Id" asp-route-filter="@Model.Filter" asp-route-hotelId="@Model.HotelId" method="post" class="d-inline"
                               onsubmit="return confirm('¿Cancelar esta reserva?');">
                             <button type="submit" class="btn btn-sm btn-outline-warning">Cancelar</button>
                         </form>
                     }
-                    <form asp-action="Delete" asp-route-id="@item.Id" asp-route-filter="@Model.Filter" method="post" class="d-inline"
+                    <form asp-action="Delete" asp-route-id="@item.Id" asp-route-filter="@Model.Filter" asp-route-hotelId="@Model.HotelId" method="post" class="d-inline"
                           onsubmit="return confirm('¿Eliminar esta reserva definitivamente? Esta acción no se puede deshacer.');">
                         <button type="submit" class="btn btn-sm btn-outline-danger">Eliminar</button>
                     </form>

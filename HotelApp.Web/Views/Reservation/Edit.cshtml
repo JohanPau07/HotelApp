@@ -14,7 +14,7 @@
     <input type="hidden" asp-for="Id" />
     <input type="hidden" asp-for="Filter" />
     <input type="hidden" asp-for="GuestName" />
-
+    <input type="hidden" asp-for="ReturnHotelId" />
     <p><strong>Huésped titular:</strong> @Model.GuestName</p>
 
     <div class="mb-3">
@@ -48,7 +48,7 @@
     <p id="resumen" class="text-muted"></p>
 
     <button type="submit" class="btn btn-primary">Guardar cambios</button>
-    <a asp-action="Index" asp-route-filter="@Model.Filter" class="btn btn-secondary">Cancelar</a>
+    <a asp-action="Index" asp-route-filter="@Model.Filter" asp-route-hotelId="@Model.ReturnHotelId" class="btn btn-secondary">Cancelar</a>
 </form>
 
 <script>
