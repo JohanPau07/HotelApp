@@ -18,12 +18,15 @@ public class BlockService : BaseService<Block, SaveBlockDto, UpdateBlockDto>, IB
         _blockRepository = repository;
     }
 
-    public override Task<OperationResult> SaveAsync(SaveBlockDto dto)
+    public override async Task<OperationResult> SaveAsync(SaveBlockDto dto)
     {
         var error = Validate(dto);
-        if (error != null) return Task.FromResult(error);
+        if (error != null) return error;
 
-        return _blockRepository.AddAsync(new BlockAdd
+        var duplicateError = await ValidateDuplicateAsync(dto, null);
+        if (duplicateError != null) return duplicateError;
+
+        return await _blockRepository.AddAsync(new BlockAdd
         {
             HotelId = dto.HotelId,
             Name = dto.Name.Trim(),
@@ -31,18 +34,34 @@ public class BlockService : BaseService<Block, SaveBlockDto, UpdateBlockDto>, IB
         });
     }
 
-    public override Task<OperationResult> UpdateAsync(UpdateBlockDto dto)
+    public override async Task<OperationResult> UpdateAsync(UpdateBlockDto dto)
     {
         var error = Validate(dto);
-        if (error != null) return Task.FromResult(error);
+        if (error != null) return error;
 
-        return _blockRepository.UpdateAsync(new BlockUpdate
+        var duplicateError = await ValidateDuplicateAsync(dto, dto.Id);
+        if (duplicateError != null) return duplicateError;
+
+        return await _blockRepository.UpdateAsync(new BlockUpdate
         {
             Id = dto.Id,
             HotelId = dto.HotelId,
             Name = dto.Name.Trim(),
             IsActive = dto.IsActive
         });
+    }
+
+    // RN: no puede haber dos bloques activos con el mismo nombre en el mismo hotel
+    private async Task<OperationResult?> ValidateDuplicateAsync(BlockBase dto, Guid? excludeId)
+    {
+        if (!dto.IsActive) return null;
+
+        var name = dto.Name.Trim();
+        var exists = await _blockRepository.ExistsActiveAsync(dto.HotelId, name, excludeId);
+        if (!exists) return null;
+
+        return OperationResult.Fail(
+            $"Ya existe un bloque llamado '{name}' activo en ese hotel. Usa otro nombre o desactiva el bloque existente.");
     }
 
     private static OperationResult? Validate(BlockBase dto)

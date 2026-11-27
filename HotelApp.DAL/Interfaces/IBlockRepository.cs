@@ -8,4 +8,5 @@ public interface IBlockRepository : IBaseRepository<Block>
 {
     Task<OperationResult> AddAsync(BlockAdd model);
     Task<OperationResult> UpdateAsync(BlockUpdate model);
+    Task<bool> ExistsActiveAsync(Guid hotelId, string name, Guid? excludeId = null);
 }

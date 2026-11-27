@@ -3,6 +3,7 @@ using HotelApp.DAL.Interfaces;
 using HotelApp.DAL.Models;
 using HotelApp.DAL.Models.Objects.Block;
 using HotelApp.DAL.Models.Result;
+using Microsoft.EntityFrameworkCore;
 
 namespace HotelApp.DAL.Repositories;
 
@@ -31,5 +32,13 @@ public class BlockRepository : BaseRepository<Block>, IBlockRepository
         block.Name = model.Name;
         block.IsActive = model.IsActive;
         return await SaveAsync("Bloque actualizado", block);
+    }
+    public async Task<bool> ExistsActiveAsync(Guid hotelId, string name, Guid? excludeId = null)
+    {
+        return await _context.Blocks.AnyAsync(b =>
+            b.IsActive
+            && b.HotelId == hotelId
+            && b.Name == name
+            && (excludeId == null || b.Id != excludeId));
     }
 }
